@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shop — Flourish by GlassHaus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&family=Cinzel:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --violet: #9B7FD4;
+    --violet-deep: #6B4FA8;
+    --violet-soft: #C4ADEA;
+    --violet-pale: #F0EBF9;
+    --earth: #3D2C1E;
+    --earth-mid: #7A5C42;
+    --gold: #C9A84C;
+    --gold-light: #F0D98A;
+    --cream: #FAF7F2;
+    --cream-dark: #EFE8DC;
+    --sage: #8BAF8E;
+    --night: #1A1225;
+    --night-mid: #2D1F3D;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--night);
+    color: var(--cream);
+    font-family: 'DM Sans', sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 1rem 3rem;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(178,150,220,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 0.5px solid rgba(107,79,168,0.25);
+    overflow: visible;
+  }
+  .nav-logo {
+    position: relative; z-index: 500; display: block;
+    text-decoration: none;
+  }
+  .nav-logo img {
+    height: 132px; width: auto; display: block;
+    position: relative; z-index: 500;
+    transform: translateY(38%);
+    filter: drop-shadow(0 6px 20px rgba(60,30,90,0.35));
+  }
+  .nav-links {
+    display: flex; gap: 2.5rem; list-style: none; align-items: center;
+  }
+  .nav-links a {
+    font-size: 0.8rem; letter-spacing: 0.08em;
+    text-transform: uppercase; text-decoration: none;
+    color: #2D1F3D; transition: color 0.2s;
+  }
+  .nav-links a:hover { color: white; }
+  .nav-cta {
+    background: var(--violet-deep); color: white !important;
+    padding: 0.55rem 1.4rem; border-radius: 2rem;
+    font-size: 0.78rem !important;
+  }
+  .nav-cta:hover { background: var(--violet) !important; }
+
+  /* ── HERO ── */
+  .shop-hero {
+    min-height: 52vh;
+    background: var(--night);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 10rem 2rem 5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .shop-hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 70% 60% at 50% 30%, rgba(155,127,212,0.22) 0%, transparent 65%),
+      radial-gradient(ellipse 40% 40% at 80% 80%, rgba(201,168,76,0.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    font-family: 'Cinzel', serif;
+    font-size: 0.68rem; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--gold);
+    margin-bottom: 1.5rem;
+  }
+  .shop-hero h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.8rem, 5vw, 5rem);
+    font-weight: 300; line-height: 1.1;
+    color: var(--cream);
+    max-width: 800px;
+  }
+  .shop-hero h1 em {
+    font-style: italic; color: var(--violet-soft);
+  }
+  .shop-hero p {
+    margin-top: 1.5rem;
+    font-size: 1rem; font-weight: 300;
+    color: rgba(255,255,255,0.5);
+    max-width: 480px;
+    line-height: 1.7;
+  }
+
+  /* ── FILTER TABS ── */
+  .filter-bar {
+    display: flex; justify-content: center;
+    gap: 0.5rem; flex-wrap: wrap;
+    padding: 2.5rem 2rem 0;
+    position: relative; z-index: 5;
+  }
+  .filter-btn {
+    font-family: 'Cinzel', serif;
+    font-size: 0.68rem; letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.5rem 1.3rem;
+    border-radius: 2rem;
+    border: 0.5px solid rgba(155,127,212,0.35);
+    background: rgba(155,127,212,0.07);
+    color: rgba(255,255,255,0.55);
+    cursor: pointer; transition: all 0.2s;
+  }
+  .filter-btn:hover {
+    background: rgba(155,127,212,0.18);
+    color: var(--violet-soft);
+    border-color: var(--violet-soft);
+  }
+  .filter-btn.active {
+    background: var(--violet-deep);
+    color: white;
+    border-color: var(--violet-deep);
+  }
+
+  /* ── SECTION WRAPPER ── */
+  .shop-section {
+    max-width: 1200px; margin: 0 auto;
+    padding: 4rem 2rem;
+  }
+  .section-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--gold);
+    margin-bottom: 0.75rem;
+  }
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+    font-weight: 300; color: var(--cream);
+    margin-bottom: 0.5rem;
+  }
+  .section-sub {
+    font-size: 0.9rem; font-weight: 300;
+    color: rgba(255,255,255,0.45);
+    margin-bottom: 2.5rem;
+    max-width: 520px; line-height: 1.7;
+  }
+
+  /* ── BUNDLE CARDS ── */
+  .bundles-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  .bundle-card {
+    background: linear-gradient(135deg, rgba(107,79,168,0.25) 0%, rgba(26,18,37,0.9) 100%);
+    border: 0.5px solid rgba(155,127,212,0.3);
+    border-radius: 1rem;
+    padding: 2.5rem;
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .bundle-card::before {
+    content: '';
+    position: absolute; top: -40px; right: -40px;
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(155,127,212,0.15), transparent 70%);
+    pointer-events: none;
+  }
+  .bundle-badge {
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem; letter-spacing: 0.25em;
+    text-transform: uppercase;
+    background: rgba(201,168,76,0.15);
+    color: var(--gold);
+    border: 0.5px solid rgba(201,168,76,0.35);
+    padding: 0.25rem 0.75rem;
+    border-radius: 2rem;
+    display: inline-block;
+    margin-bottom: 1.2rem;
+  }
+  .bundle-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.9rem; font-weight: 300;
+    color: var(--cream); margin-bottom: 0.4rem;
+  }
+  .bundle-price {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 2.4rem; font-weight: 500;
+    color: var(--violet-soft);
+    margin-bottom: 1.5rem;
+  }
+  .bundle-price span {
+    font-size: 1rem; font-weight: 300;
+    color: rgba(255,255,255,0.4);
+    margin-left: 0.3rem;
+  }
+  .bundle-includes {
+    list-style: none; margin-bottom: 2rem; flex: 1;
+  }
+  .bundle-includes li {
+    font-size: 0.88rem; font-weight: 300;
+    color: rgba(255,255,255,0.65);
+    padding: 0.45rem 0;
+    border-bottom: 0.5px solid rgba(255,255,255,0.06);
+    display: flex; align-items: flex-start; gap: 0.6rem;
+    line-height: 1.5;
+  }
+  .bundle-includes li::before {
+    content: '✦';
+    color: var(--violet-soft);
+    font-size: 0.6rem;
+    margin-top: 0.2rem;
+    flex-shrink: 0;
+  }
+  .btn-bundle {
+    display: block; text-align: center;
+    background: var(--violet-deep);
+    color: white; text-decoration: none;
+    padding: 0.85rem 1.5rem;
+    border-radius: 0.5rem;
+    font-size: 0.82rem; font-weight: 500;
+    letter-spacing: 0.05em;
+    transition: background 0.2s, transform 0.15s;
+    border: none; cursor: pointer; width: 100%;
+  }
+  .btn-bundle:hover {
+    background: var(--violet);
+    transform: translateY(-1px);
+  }
+  .btn-bundle.gold {
+    background: linear-gradient(135deg, var(--gold), #a87d30);
+    color: var(--night);
+  }
+  .btn-bundle.gold:hover {
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  }
+
+  /* ── PRODUCT GRID ── */
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.25rem;
+  }
+  .product-card {
+    background: rgba(45,31,61,0.5);
+    border: 0.5px solid rgba(155,127,212,0.18);
+    border-radius: 0.75rem;
+    padding: 1.75rem 1.5rem;
+    display: flex; flex-direction: column;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .product-card:hover {
+    border-color: rgba(155,127,212,0.45);
+    transform: translateY(-2px);
+  }
+  .product-sku {
+    font-family: 'Cinzel', serif;
+    font-size: 0.58rem; letter-spacing: 0.25em;
+    color: rgba(255,255,255,0.3);
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+  }
+  .product-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem; font-weight: 400;
+    color: var(--cream);
+    line-height: 1.3;
+    margin-bottom: 0.5rem;
+    flex: 1;
+  }
+  .product-desc {
+    font-size: 0.8rem; font-weight: 300;
+    color: rgba(255,255,255,0.4);
+    line-height: 1.6;
+    margin-bottom: 1.2rem;
+  }
+  .product-price-row {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+  .product-price {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.3rem; font-weight: 500;
+    color: var(--violet-soft);
+  }
+  .product-price.free {
+    color: var(--sage);
+    font-size: 1.1rem;
+    letter-spacing: 0.05em;
+  }
+  .product-tag {
+    font-family: 'Cinzel', serif;
+    font-size: 0.55rem; letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.6rem;
+    border-radius: 2rem;
+    background: rgba(139,175,142,0.15);
+    color: var(--sage);
+    border: 0.5px solid rgba(139,175,142,0.3);
+  }
+  .btn-product {
+    display: block; text-align: center;
+    background: transparent;
+    border: 0.5px solid rgba(155,127,212,0.45);
+    color: var(--violet-soft);
+    text-decoration: none;
+    padding: 0.6rem 1rem;
+    border-radius: 0.4rem;
+    font-size: 0.78rem;
+    transition: all 0.2s;
+    cursor: pointer; width: 100%;
+  }
+  .btn-product:hover {
+    background: var(--violet-deep);
+    border-color: var(--violet-deep);
+    color: white;
+  }
+  .btn-product.free-dl {
+    border-color: rgba(139,175,142,0.4);
+    color: var(--sage);
+  }
+  .btn-product.free-dl:hover {
+    background: rgba(139,175,142,0.15);
+  }
+
+  /* ── DIVIDER ── */
+  .section-divider {
+    border: none;
+    border-top: 0.5px solid rgba(155,127,212,0.12);
+    margin: 0;
+  }
+
+  /* ── CURRICULUM WEEKS ── */
+  .weeks-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .week-card {
+    background: rgba(26,18,37,0.8);
+    border: 0.5px solid rgba(155,127,212,0.15);
+    border-radius: 0.75rem;
+    padding: 1.5rem 1.25rem;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+  .week-card:hover { border-color: rgba(155,127,212,0.3); }
+  .week-lock {
+    position: absolute; top: 1rem; right: 1rem;
+    font-size: 0.9rem; opacity: 0.4;
+  }
+  .week-num {
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem; letter-spacing: 0.25em;
+    color: var(--gold); opacity: 0.7;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  .week-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem; font-weight: 400;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.3; margin-bottom: 0.5rem;
+  }
+  .week-topics {
+    font-size: 0.75rem; font-weight: 300;
+    color: rgba(255,255,255,0.3);
+    line-height: 1.6;
+  }
+  .unlock-cta {
+    text-align: center;
+    background: linear-gradient(135deg, rgba(107,79,168,0.2), rgba(26,18,37,0.6));
+    border: 0.5px solid rgba(155,127,212,0.25);
+    border-radius: 1rem;
+    padding: 2.5rem;
+  }
+  .unlock-cta p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem; font-style: italic;
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+  }
+  .btn-unlock {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--gold), #a87d30);
+    color: var(--night);
+    text-decoration: none;
+    padding: 0.9rem 2.5rem;
+    border-radius: 0.5rem;
+    font-size: 0.85rem; font-weight: 500;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+    border: none; cursor: pointer;
+  }
+  .btn-unlock:hover {
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    transform: translateY(-1px);
+  }
+  .unlock-note {
+    margin-top: 1rem;
+    font-size: 0.75rem; font-weight: 300;
+    color: rgba(255,255,255,0.3);
+  }
+
+  /* ── EDU / PRACTITIONER CARDS ── */
+  .edu-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+  .edu-card {
+    background: rgba(45,31,61,0.4);
+    border: 0.5px solid rgba(139,175,142,0.18);
+    border-radius: 0.75rem;
+    padding: 2rem;
+    display: flex; flex-direction: column;
+    transition: border-color 0.2s;
+  }
+  .edu-card:hover { border-color: rgba(139,175,142,0.4); }
+  .edu-icon {
+    font-size: 1.6rem; margin-bottom: 1rem;
+  }
+  .edu-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem; letter-spacing: 0.25em;
+    text-transform: uppercase; color: var(--sage);
+    margin-bottom: 0.5rem;
+  }
+  .edu-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem; font-weight: 400;
+    color: var(--cream);
+    margin-bottom: 0.6rem;
+    line-height: 1.3;
+  }
+  .edu-desc {
+    font-size: 0.83rem; font-weight: 300;
+    color: rgba(255,255,255,0.45);
+    line-height: 1.7;
+    flex: 1; margin-bottom: 1.5rem;
+  }
+  .btn-edu {
+    display: block; text-align: center;
+    background: transparent;
+    border: 0.5px solid rgba(139,175,142,0.4);
+    color: var(--sage);
+    text-decoration: none;
+    padding: 0.65rem 1rem;
+    border-radius: 0.4rem;
+    font-size: 0.78rem;
+    transition: all 0.2s;
+  }
+  .btn-edu:hover {
+    background: rgba(139,175,142,0.12);
+    border-color: var(--sage);
+  }
+
+  /* ── PRIYA CTA ── */
+  .priya-cta {
+    background: linear-gradient(135deg, var(--night-mid) 0%, var(--night) 100%);
+    border-top: 0.5px solid rgba(155,127,212,0.15);
+    padding: 6rem 2rem;
+    text-align: center;
+  }
+  .priya-cta .section-label { text-align: center; }
+  .priya-cta h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 300; color: var(--cream);
+    max-width: 640px; margin: 0 auto 1.2rem;
+    line-height: 1.2;
+  }
+  .priya-cta h2 em {
+    font-style: italic; color: var(--violet-soft);
+  }
+  .priya-cta p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem; font-style: italic;
+    color: rgba(255,255,255,0.45);
+    max-width: 480px; margin: 0 auto 2.5rem;
+    line-height: 1.7;
+  }
+  .btn-priya {
+    display: inline-block;
+    background: var(--violet);
+    color: white; text-decoration: none;
+    padding: 1rem 2.8rem;
+    border-radius: 0.5rem;
+    font-size: 0.88rem; font-weight: 500;
+    letter-spacing: 0.05em;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .btn-priya:hover {
+    background: var(--violet-deep);
+    transform: translateY(-1px);
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--night);
+    border-top: 0.5px solid rgba(255,255,255,0.06);
+    padding: 2.5rem 3rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem;
+  }
+  .footer-brand {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem; letter-spacing: 0.2em;
+    color: rgba(255,255,255,0.3);
+  }
+  .footer-links {
+    display: flex; gap: 2rem; list-style: none;
+  }
+  .footer-links a {
+    font-size: 0.75rem; font-weight: 300;
+    color: rgba(255,255,255,0.3);
+    text-decoration: none; transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--violet-soft); }
+
+  /* ── HIDDEN (filter) ── */
+  .filtered-hidden { display: none !important; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    nav { padding: 0.75rem 1.5rem; }
+    .nav-logo img { height: 90px; }
+    .bundles-grid { grid-template-columns: 1fr; }
+    .weeks-grid { grid-template-columns: 1fr 1fr; }
+    .edu-grid { grid-template-columns: 1fr; }
+    .products-grid { grid-template-columns: 1fr 1fr; }
+    footer { flex-direction: column; align-items: flex-start; }
+  }
+  @media (max-width: 480px) {
+    .products-grid { grid-template-columns: 1fr; }
+    .weeks-grid { grid-template-columns: 1fr; }
+    .filter-bar { gap: 0.35rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <a href="index.html" class="nav-logo">
+    <img src="assets/images/flourish-logo-nobg.png" alt="Flourish" />
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html#priya">Meet Priya</a></li>
+    <li><a href="index.html#program">The Program</a></li>
+    <li><a href="index.html#offerings-hub">Your Tools</a></li>
+    <li><a href="index.html#start" class="nav-cta">Begin Your Journey</a></li>
+  </ul>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="shop-hero">
+  <div class="hero-eyebrow">Flourish Marketplace</div>
+  <h1>Everything you need.<br><em>Nothing you don't.</em></h1>
+  <p>Curated tools, guides, and programs — built around your body's wisdom, not against it.</p>
+</section>
+
+<!-- ── FILTER TABS ── -->
+<div class="filter-bar">
+  <button class="filter-btn active" data-filter="all">All</button>
+  <button class="filter-btn" data-filter="free">Free</button>
+  <button class="filter-btn" data-filter="tools">Your Tools</button>
+  <button class="filter-btn" data-filter="programs">Programs</button>
+  <button class="filter-btn" data-filter="practitioners">Practitioners</button>
+  <button class="filter-btn" data-filter="8-week">8-Week Guides</button>
+</div>
+
+<!-- ── BUNDLES ── -->
+<section class="shop-section" data-section="programs">
+  <div class="section-label">Featured Bundles</div>
+  <h2 class="section-title">Start with everything.</h2>
+  <p class="section-sub">Two curated collections — one for exploration, one for transformation.</p>
+
+  <div class="bundles-grid">
+
+    <!-- Bundle 1 -->
+    <div class="bundle-card" data-category="programs">
+      <div class="bundle-badge">Session Pack</div>
+      <div class="bundle-name">GlassHaus Session Pack</div>
+      <div class="bundle-price">$45 <span>one-time</span></div>
+      <ul class="bundle-includes">
+        <li>3 x 60-minute Priya sessions (any topic)</li>
+        <li>Full session transcripts & insight summaries</li>
+        <li>Personalized action plan after each session</li>
+        <li>Access to your Digital Wellness Passport</li>
+        <li>30-day session replay access</li>
+      </ul>
+      <a href="STRIPE_SESSION_PACK_URL" class="btn-bundle">Buy Session Pack — $45</a>
+    </div>
+
+    <!-- Bundle 2 -->
+    <div class="bundle-card" data-category="programs">
+      <div class="bundle-badge" style="background:rgba(201,168,76,0.15);color:var(--gold);border-color:rgba(201,168,76,0.35);">Best Value</div>
+      <div class="bundle-name">Menopause Mastery</div>
+      <div class="bundle-price" style="color:var(--gold-light);">$129 <span>full program</span></div>
+      <ul class="bundle-includes">
+        <li>Complete 8-Week Sovereignty Curriculum</li>
+        <li>All 7 FL-M digital guides (FL-M01–FL-M07)</li>
+        <li>Unlimited Priya sessions for 8 weeks</li>
+        <li>Weekly live group integration calls</li>
+        <li>Practitioner referral network access</li>
+        <li>Lifetime access to program materials</li>
+        <li>GlassHaus community membership</li>
+      </ul>
+      <a href="STRIPE_MASTERY_URL" class="btn-bundle gold">Unlock Mastery — $129</a>
+    </div>
+
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ── PRODUCT GUIDES ── -->
+<section class="shop-section">
+  <div class="section-label">Digital Guides</div>
+  <h2 class="section-title">Your tools, on your terms.</h2>
+  <p class="section-sub">Downloadable guides built around the four wisdom traditions — start anywhere.</p>
+
+  <div class="products-grid">
+
+    <!-- FL-M01 Free -->
+    <div class="product-card" data-category="tools free">
+      <div class="product-sku">FL-M01</div>
+      <div class="product-name">Understanding Your Transition</div>
+      <div class="product-desc">A foundational primer on perimenopause and menopause — what's actually happening, and why your body is not broken.</div>
+      <div class="product-price-row">
+        <div class="product-price free">Free</div>
+        <div class="product-tag">Free Download</div>
+      </div>
+      <a href="STRIPE_FL_M01_URL" class="btn-product free-dl">Download Free</a>
+    </div>
+
+    <!-- FL-M02 -->
+    <div class="product-card" data-category="tools">
+      <div class="product-sku">FL-M02</div>
+      <div class="product-name">Hormone Harmony Guide</div>
+      <div class="product-desc">Practical protocols for navigating hormonal fluctuation using food, movement, and rhythm — not medication alone.</div>
+      <div class="product-price-row">
+        <div class="product-price">$12</div>
+      </div>
+      <a href="STRIPE_FL_M02_URL" class="btn-product">Add to Journey — $12</a>
+    </div>
+
+    <!-- FL-M03 -->
+    <div class="product-card" data-category="tools">
+      <div class="product-sku">FL-M03</div>
+      <div class="product-name">Sleep & Restoration Protocol</div>
+      <div class="product-desc">Evidence-based sleep restoration techniques drawn from Ayurvedic, TCM, and modern sleep science traditions.</div>
+      <div class="product-price-row">
+        <div class="product-price">$15</div>
+      </div>
+      <a href="STRIPE_FL_M03_URL" class="btn-product">Add to Journey — $15</a>
+    </div>
+
+    <!-- FL-M04 -->
+    <div class="product-card" data-category="tools">
+      <div class="product-sku">FL-M04</div>
+      <div class="product-name">Nourishment for the Passage</div>
+      <div class="product-desc">Nutrition wisdom across four traditions — what to eat, what to release, and how to listen to your body's new signals.</div>
+      <div class="product-price-row">
+        <div class="product-price">$18</div>
+      </div>
+      <a href="STRIPE_FL_M04_URL" class="btn-product">Add to Journey — $18</a>
+    </div>
+
+    <!-- FL-M05 -->
+    <div class="product-card" data-category="tools">
+      <div class="product-sku">FL-M05</div>
+      <div class="product-name">Emotional Sovereignty</div>
+      <div class="product-desc">Tools for navigating mood, anxiety, and identity shifts — reclaiming your interior landscape with clarity and compassion.</div>
+      <div class="product-price-row">
+        <div class="product-price">$18</div>
+      </div>
+      <a href="STRIPE_FL_M05_URL" class="btn-product">Add to Journey — $18</a>
+    </div>
+
+    <!-- FL-M06 -->
+    <div class="product-card" data-category="tools">
+      <div class="product-sku">FL-M06</div>
+      <div class="product-name">Movement as Medicine</div>
+      <div class="product-desc">A body-first guide to exercise and movement during transition — bone density, energy, and embodied strength.</div>
+      <div class="product-price-row">
+        <div class="product-price">$21</div>
+      </div>
+      <a href="STRIPE_FL_M06_URL" class="btn-product">Add to Journey — $21</a>
+    </div>
+
+    <!-- FL-M07 -->
+    <div class="product-card" data-category="tools">
+      <div class="product-sku">FL-M07</div>
+      <div class="product-name">Ancestral Wisdom Practices</div>
+      <div class="product-desc">Rituals, ceremonies, and contemplative practices from Indigenous, Ayurvedic, Chinese, and African traditions honoring the elder woman.</div>
+      <div class="product-price-row">
+        <div class="product-price">$24</div>
+      </div>
+      <a href="STRIPE_FL_M07_URL" class="btn-product">Add to Journey — $24</a>
+    </div>
+
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ── 8-WEEK CURRICULUM ── -->
+<section class="shop-section" data-section="8-week">
+  <div class="section-label">8-Week Sovereignty Program</div>
+  <h2 class="section-title">Eight weeks. One transformation.</h2>
+  <p class="section-sub">A guided curriculum integrating four wisdom traditions into a coherent, weekly practice. Unlock all eight weeks for $129.</p>
+
+  <div class="weeks-grid">
+
+    <div class="week-card" data-category="8-week">
+      <div class="week-lock">🔒</div>
+      <div class="week-num">Week 01</div>
+      <div class="week-title">Naming Your Season</div>
+      <div class="week-topics">Understanding the transition · releasing the diagnosis narrative · mapping your symptoms</div>
+    </div>
+
+    <div class="week-card" data-category="8-week">
+      <div class="week-lock">🔒</div>
+      <div class="week-num">Week 02</div>
+      <div class="week-title">The Body's New Language</div>
+      <div class="week-topics">Hormonal literacy · symptom journaling · TCM body mapping · the yin-yang shift</div>
+    </div>
+
+    <div class="week-card" data-category="8-week">
+      <div class="week-lock">🔒</div>
+      <div class="week-num">Week 03</div>
+      <div class="week-title">Sleep as Sacred Practice</div>
+      <div class="week-topics">Restoration rituals · circadian realignment · night sweats protocol · dream work</div>
+    </div>
+
+    <div class="week-card" data-category="8-week">
+      <div class="week-lock">🔒</div>
+      <div class="week-num">Week 04</div>
+      <div class="week-title">Feeding the Elder</div>
+      <div class="week-topics">Ancestral food wisdom · anti-inflammatory foundations · bone broth traditions · fasting considerations</div>
+    </div>
+
+    <div class="week-card" data-category="8-week">
+      <div class="week-lock">🔒</div>
+      <div class="week-num">Week 05</div>
+      <div class="week-title">The Emotional Landscape</div>
+      <div class="week-topics">Rage as signal · grief as release · anxiety reframing · the second spring philosophy</div>
+    </div>
+
+    <div class="week-card" data-category="8-week">
+      <div class="week-lock">🔒</div>
+      <div class="week-num">Week 06</div>
+      <div class="week-title">Moving Through Change</div>
+      <div class="week-topics">Yin yoga foundations · strength as medicine · pelvic floor restoration · breath as anchor</div>
+    </div>
+
+    <div class="week-card" data-category="8-week">
+      <div class="week-lock">🔒</div>
+      <div class="week-num">Week 07</div>
+      <div class="week-title">Reclaiming Desire</div>
+      <div class="week-topics">Sexuality & intimacy reframing · libido as life force · embodied pleasure practices · partner communication</div>
+    </div>
+
+    <div class="week-card" data-category="8-week">
+      <div class="week-lock">🔒</div>
+      <div class="week-num">Week 08</div>
+      <div class="week-title">The Elder Initiation</div>
+      <div class="week-topics">Integration ceremony · elder archetype work · community & legacy · your sovereignty declaration</div>
+    </div>
+
+  </div>
+
+  <div class="unlock-cta" data-category="8-week">
+    <p>"Eight weeks to move from managing symptoms<br>to embodying your most sovereign season."</p>
+    <a href="STRIPE_MASTERY_URL" class="btn-unlock">Unlock All 8 Weeks — $129</a>
+    <div class="unlock-note">Includes all FL-M guides · Unlimited Priya sessions · Community access</div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ── PRACTITIONERS ── -->
+<section class="shop-section" data-section="practitioners">
+  <div class="section-label">For Practitioners</div>
+  <h2 class="section-title">Extend your practice.</h2>
+  <p class="section-sub">Clinical education resources and referral pathways for healthcare providers, therapists, and wellness practitioners.</p>
+
+  <div class="edu-grid">
+
+    <div class="edu-card" data-category="practitioners">
+      <div class="edu-icon">🩺</div>
+      <div class="edu-label">Clinical Education</div>
+      <div class="edu-name">Integrative Menopause Care — Provider Overview</div>
+      <div class="edu-desc">A 40-page clinical briefing covering integrative approaches to perimenopause and menopause management — suitable for CME review. Includes protocol references from Ayurveda, TCM, and functional medicine.</div>
+      <a href="mailto:providers@glasshauswellness.com?subject=Provider%20Overview%20Request" class="btn-edu">Request Access → providers@glasshauswellness.com</a>
+    </div>
+
+    <div class="edu-card" data-category="practitioners">
+      <div class="edu-icon">🤝</div>
+      <div class="edu-label">Referral Partnership</div>
+      <div class="edu-name">GlassHaus Provider Network</div>
+      <div class="edu-desc">Join our curated referral network of integrative practitioners. Accepted providers receive a dedicated profile, client referrals from the Flourish community, and co-branded educational materials.</div>
+      <a href="mailto:providers@glasshauswellness.com?subject=Provider%20Network%20Application" class="btn-edu">Apply to Network → providers@glasshauswellness.com</a>
+    </div>
+
+    <div class="edu-card" data-category="practitioners">
+      <div class="edu-icon">📋</div>
+      <div class="edu-label">Screening Tools</div>
+      <div class="edu-name">Menopause Symptom Mapping Toolkit</div>
+      <div class="edu-desc">Validated intake forms and symptom-mapping tools calibrated for integrative practice. Covers the 34 recognized symptoms tracked in the Flourish system, with cross-traditional interpretation notes.</div>
+      <a href="mailto:providers@glasshauswellness.com?subject=Symptom%20Mapping%20Toolkit" class="btn-edu">Request Toolkit → providers@glasshauswellness.com</a>
+    </div>
+
+    <div class="edu-card" data-category="practitioners">
+      <div class="edu-icon">🎓</div>
+      <div class="edu-label">Continuing Education</div>
+      <div class="edu-name">Ancestral Wisdom in Clinical Practice</div>
+      <div class="edu-desc">A workshop series for practitioners seeking to integrate Ayurvedic, TCM, Indigenous, and African healing frameworks into evidence-informed care. Available live and on-demand.</div>
+      <a href="mailto:providers@glasshauswellness.com?subject=CE%20Workshop%20Inquiry" class="btn-edu">Inquire → providers@glasshauswellness.com</a>
+    </div>
+
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ── PRIYA CTA ── -->
+<section class="priya-cta">
+  <div class="section-label">Not sure where to start?</div>
+  <h2>Let <em>Priya</em> guide you.</h2>
+  <p>Tell her where you are right now. She'll help you find exactly what you need — at no cost, with no judgment.</p>
+  <a href="index.html#start" class="btn-priya">Begin with Priya — It's Free</a>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-brand">Flourish © 2026 · Powered by GlassHaus Wellness</div>
+  <ul class="footer-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="index.html#priya">Meet Priya</a></li>
+    <li><a href="index.html#program">The Program</a></li>
+    <li><a href="mailto:providers@glasshauswellness.com">Providers</a></li>
+  </ul>
+</footer>
+
+<!-- ── FILTER JS ── -->
+<script>
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  const filterableCards = document.querySelectorAll('[data-category]');
+  const filterableSections = document.querySelectorAll('[data-section]');
+
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const filter = btn.dataset.filter;
+
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      if (filter === 'all') {
+        filterableCards.forEach(c => c.classList.remove('filtered-hidden'));
+        filterableSections.forEach(s => s.classList.remove('filtered-hidden'));
+        document.querySelectorAll('.section-divider').forEach(d => d.classList.remove('filtered-hidden'));
+        return;
+      }
+
+      filterableCards.forEach(card => {
+        const cats = card.dataset.category || '';
+        if (cats.includes(filter)) {
+          card.classList.remove('filtered-hidden');
+        } else {
+          card.classList.add('filtered-hidden');
+        }
+      });
+
+      filterableSections.forEach(section => {
+        const sec = section.dataset.section || '';
+        if (sec === filter) {
+          section.classList.remove('filtered-hidden');
+        } else {
+          section.classList.add('filtered-hidden');
+        }
+      });
+
+      document.querySelectorAll('.section-divider').forEach(d => d.classList.add('filtered-hidden'));
+    });
+  });
+</script>
+
+</body>
+</html>
