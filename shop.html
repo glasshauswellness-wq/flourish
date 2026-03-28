@@ -693,7 +693,7 @@
         <li>Access to your Digital Wellness Passport</li>
         <li>30-day session replay access</li>
       </ul>
-      <a href="#priya" class="btn-bundle">Buy Session Pack — $45</a>
+      <a href="#" class="btn-bundle" onclick="startCheckout('session-pack', this); return false;">Buy Session Pack — $45</a>
     </div>
 
     <!-- Bundle 2 -->
@@ -709,7 +709,7 @@
         <li>Digital Wellness Passport integration</li>
         <li>Ends with your Declaration</li>
       </ul>
-      <a href="#priya" class="btn-bundle gold">Unlock Mastery — $129</a>
+      <a href="#" class="btn-bundle gold" onclick="startCheckout('mastery', this); return false;">Unlock Mastery — $129</a>
     </div>
 
   </div>
@@ -734,7 +734,7 @@
         <div class="product-price free">Free</div>
         <div class="product-tag">Free Download</div>
       </div>
-      <a href="#priya" class="btn-product free-dl">Download Free</a>
+      <a href="#" class="btn-product free-dl" onclick="startCheckout('fl-m01', this); return false;">Download Free</a>
     </div>
 
     <!-- FL-M02 -->
@@ -745,7 +745,7 @@
       <div class="product-price-row">
         <div class="product-price">$12</div>
       </div>
-      <a href="#priya" class="btn-product">Add to Journey — $12</a>
+      <a href="#" class="btn-product" onclick="startCheckout('fl-m02', this); return false;">Add to Journey — $12</a>
     </div>
 
     <!-- FL-M03 -->
@@ -756,7 +756,7 @@
       <div class="product-price-row">
         <div class="product-price">$18</div>
       </div>
-      <a href="#priya" class="btn-product">Add to Journey — $18</a>
+      <a href="#" class="btn-product" onclick="startCheckout('fl-m03', this); return false;">Add to Journey — $18</a>
     </div>
 
     <!-- FL-M04 -->
@@ -767,7 +767,7 @@
       <div class="product-price-row">
         <div class="product-price">$15</div>
       </div>
-      <a href="#priya" class="btn-product">Add to Journey — $15</a>
+      <a href="#" class="btn-product" onclick="startCheckout('fl-m04', this); return false;">Add to Journey — $15</a>
     </div>
 
     <!-- FL-M05 -->
@@ -779,7 +779,7 @@
         <div class="product-price" style="color:var(--gold);font-size:0.95rem;letter-spacing:0.03em;">Included in 8-Week</div>
         <div class="product-tag" style="background:rgba(201,168,76,0.12);color:var(--gold);border-color:rgba(201,168,76,0.3);">Program</div>
       </div>
-      <a href="#priya" class="btn-product" style="border-color:rgba(201,168,76,0.35);color:var(--gold);">Unlock with 8-Week — $129</a>
+      <a href="#" class="btn-product" style="border-color:rgba(201,168,76,0.35);color:var(--gold);" onclick="startCheckout('mastery', this); return false;">Unlock with 8-Week — $129</a>
     </div>
 
     <!-- FL-M06 -->
@@ -790,7 +790,7 @@
       <div class="product-price-row">
         <div class="product-price">$24</div>
       </div>
-      <a href="#priya" class="btn-product">Add to Journey — $24</a>
+      <a href="#" class="btn-product" onclick="startCheckout('fl-m06', this); return false;">Add to Journey — $24</a>
     </div>
 
     <!-- FL-M07 -->
@@ -799,9 +799,9 @@
       <div class="product-name">The 90-Day Sovereignty Journal</div>
       <div class="product-desc">90 days with Priya. 7 prompts per week aligned with the 8-week program. Culminates in Week 8 where you write your Sovereignty Declaration. Write badly if you need to. Just write.</div>
       <div class="product-price-row">
-        <div class="product-price">$24</div>
+        <div class="product-price">$19</div>
       </div>
-      <a href="#priya" class="btn-product">Add to Journey — $24</a>
+      <a href="#" class="btn-product" onclick="startCheckout('fl-m07', this); return false;">Add to Journey — $19</a>
     </div>
 
   </div>
@@ -1059,7 +1059,7 @@
 
   <div class="unlock-cta" data-category="8-week">
     <p>"Eight weeks to move from managing symptoms<br>to embodying your most sovereign season."</p>
-    <a href="#priya" class="btn-unlock">Unlock All 8 Weeks — $129</a>
+    <a href="#" class="btn-unlock" onclick="startCheckout('mastery', this); return false;">Unlock All 8 Weeks — $129</a>
     <div class="unlock-note">Includes all FL-M guides · Unlimited Priya sessions · Community access</div>
   </div>
 </section>
@@ -1171,6 +1171,57 @@
       document.querySelectorAll('.section-divider').forEach(d => d.classList.add('filtered-hidden'));
     });
   });
+</script>
+
+<div id="checkout-toast" style="display:none;position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--violet-dark,#2d1d40);color:#f5f0ea;padding:1rem 2rem;border-radius:8px;border:1px solid rgba(201,168,76,0.4);font-family:'DM Sans',sans-serif;font-size:0.95rem;z-index:9999;text-align:center;max-width:90vw;box-shadow:0 4px 24px rgba(0,0,0,0.35);"></div>
+
+<script>
+function showToast(msg, duration) {
+  const t = document.getElementById('checkout-toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, duration || 4000);
+}
+
+async function startCheckout(product, el) {
+  const orig = el.textContent;
+  el.textContent = 'Opening checkout…';
+  el.style.opacity = '0.65';
+  el.style.pointerEvents = 'none';
+
+  try {
+    const res = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product })
+    });
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      throw new Error(data.error || 'Unknown error');
+    }
+  } catch (e) {
+    showToast('Something went quiet — please try again in a moment.', 5000);
+    el.textContent = orig;
+    el.style.opacity = '';
+    el.style.pointerEvents = '';
+  }
+}
+
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('success') === '1') {
+    showToast('Your purchase is complete. Welcome to your next chapter.', 6000);
+    history.replaceState({}, '', '/shop.html');
+  } else if (params.get('cancelled') === '1') {
+    showToast('No worries — your journey is here whenever you are ready.', 5000);
+    history.replaceState({}, '', '/shop.html');
+  } else if (params.get('downloaded') === 'fl-m01') {
+    showToast('Your Symptom Sovereignty Map is on its way. Check back soon.', 6000);
+    history.replaceState({}, '', '/shop.html');
+  }
+})();
 </script>
 
 </body>

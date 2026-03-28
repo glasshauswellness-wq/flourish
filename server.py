@@ -3,8 +3,11 @@ import json
 import threading
 import http.server
 import socketserver
+import urllib.request
+import urllib.error
 from http.server import BaseHTTPRequestHandler
 from google import genai
+import stripe
 
 PRIYA_SYSTEM_PROMPT = """================================================================
 PRIYA — FLOURISH FREEMIUM SESSION INSTRUCTION PROMPT
@@ -245,6 +248,89 @@ The ideal is that a woman works with Priya between her Ascend sessions — Priya
 END — PRIYA FREEMIUM SESSION INSTRUCTIONS v3.1
 ================================================================"""
 
+STRIPE_PRODUCTS = {
+    "session-pack": {
+        "name": "Session Pack — 5 AI Sessions with Priya",
+        "amount": 4500,
+        "description": "Five guided sessions with Priya. Most women find they need three before the shift happens.",
+    },
+    "mastery": {
+        "name": "Menopause Mastery — 8-Week Program",
+        "amount": 12900,
+        "description": "The full journey. Ends with your Hormonal Sovereignty Declaration.",
+    },
+    "fl-m01": {
+        "name": "FL-M01 — Symptom Sovereignty Map",
+        "amount": 0,
+        "description": "34 signals organized by body system — clinical explanation and ancestral perspective for each.",
+    },
+    "fl-m02": {
+        "name": "FL-M02 — 30-Day Body Intelligence Tracker",
+        "amount": 1200,
+        "description": "Your body is giving you data. This is how you read it.",
+    },
+    "fl-m03": {
+        "name": "FL-M03 — Ancestral Nourishment Playbook",
+        "amount": 1800,
+        "description": "Food as medicine from four traditions — for this specific season.",
+    },
+    "fl-m04": {
+        "name": "FL-M04 — Doctor Visit Prep Kit",
+        "amount": 1500,
+        "description": "Walk in prepared. Language, questions, and the data your doctor needs.",
+    },
+    "fl-m06": {
+        "name": "FL-M06 — Perimenopause Field Guide",
+        "amount": 2400,
+        "description": "The full clinical and ancestral reference in one place.",
+    },
+    "fl-m07": {
+        "name": "FL-M07 — The Flourish Journal",
+        "amount": 1900,
+        "description": "90 days of prompts. Write badly if you need to. Just write.",
+    },
+}
+
+
+def get_stripe_key():
+    hostname = os.environ.get("REPLIT_CONNECTORS_HOSTNAME")
+    repl_identity = os.environ.get("REPL_IDENTITY")
+    web_renewal = os.environ.get("WEB_REPL_RENEWAL")
+
+    if repl_identity:
+        token = "repl " + repl_identity
+    elif web_renewal:
+        token = "depl " + web_renewal
+    else:
+        return None
+
+    is_production = os.environ.get("REPLIT_DEPLOYMENT") == "1"
+    environment = "production" if is_production else "development"
+
+    url = f"https://{hostname}/api/v2/connection?include_secrets=true&connector_names=stripe&environment={environment}"
+    req = urllib.request.Request(url, headers={
+        "Accept": "application/json",
+        "X-Replit-Token": token
+    })
+    try:
+        with urllib.request.urlopen(req) as resp:
+            data = json.loads(resp.read())
+            items = data.get("items", [])
+            if items:
+                return items[0]["settings"].get("secret")
+    except Exception as e:
+        print(f"Stripe key fetch error: {e}")
+    return None
+
+
+def get_site_base_url():
+    domains = os.environ.get("REPLIT_DOMAINS", "")
+    if domains:
+        domain = domains.split(",")[0].strip()
+        return f"https://{domain}"
+    return "http://localhost:5000"
+
+
 def get_gemini_client():
     base_url = os.environ.get("AI_INTEGRATIONS_GEMINI_BASE_URL")
     api_key = os.environ.get("AI_INTEGRATIONS_GEMINI_API_KEY")
@@ -281,6 +367,8 @@ class FlourishHandler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
         if self.path == "/api/chat":
             self.handle_chat()
+        elif self.path == "/api/checkout":
+            self.handle_checkout()
         else:
             self.send_error(404, "Not found")
 
@@ -333,6 +421,66 @@ class FlourishHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps({
                 "reply": "I am here. Something quieted my voice for a moment — please try again."
             }).encode())
+
+    def handle_checkout(self):
+        try:
+            length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(length)
+            data = json.loads(body)
+
+            product_key = data.get("product", "").strip()
+            product = STRIPE_PRODUCTS.get(product_key)
+
+            if not product:
+                self.send_response(400)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": "Unknown product"}).encode())
+                return
+
+            if product["amount"] == 0:
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"url": "/shop.html?downloaded=fl-m01"}).encode())
+                return
+
+            secret_key = get_stripe_key()
+            if not secret_key:
+                raise ValueError("Stripe key unavailable")
+
+            stripe.api_key = secret_key
+            base_url = get_site_base_url()
+
+            session = stripe.checkout.Session.create(
+                payment_method_types=["card"],
+                line_items=[{
+                    "price_data": {
+                        "currency": "usd",
+                        "unit_amount": product["amount"],
+                        "product_data": {
+                            "name": product["name"],
+                            "description": product["description"],
+                        },
+                    },
+                    "quantity": 1,
+                }],
+                mode="payment",
+                success_url=f"{base_url}/shop.html?success=1&product={product_key}",
+                cancel_url=f"{base_url}/shop.html?cancelled=1",
+            )
+
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"url": session.url}).encode())
+
+        except Exception as e:
+            print(f"Checkout error: {e}")
+            self.send_response(500)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": "Checkout unavailable. Please try again."}).encode())
 
     def log_message(self, format, *args):
         if "/api/" in str(args):
