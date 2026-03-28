@@ -430,31 +430,35 @@
     font-family: 'Cormorant Garamond', serif;
     font-size: 0.9rem; font-weight: 600; font-style: italic;
     color: rgba(255,255,255,0.8);
-    line-height: 1.25; margin-bottom: 0.15rem;
+    line-height: 1.25; margin-bottom: 0.1rem;
+  }
+  .week-back-desc {
+    font-size: 0.67rem; font-weight: 300;
+    color: rgba(255,255,255,0.45);
+    line-height: 1.55;
   }
   .week-will-label {
-    font-size: 0.58rem; letter-spacing: 0.2em;
+    font-size: 0.55rem; letter-spacing: 0.2em;
     color: var(--sage); text-transform: uppercase;
-    opacity: 0.7;
+    opacity: 0.7; margin-top: 0.1rem;
   }
   .week-will-list {
     list-style: none; padding: 0; margin: 0;
-    display: flex; flex-direction: column; gap: 0.2rem;
+    display: flex; flex-direction: column; gap: 0.15rem;
   }
   .week-will-list li {
-    font-size: 0.7rem; font-weight: 300;
-    color: rgba(255,255,255,0.55);
+    font-size: 0.65rem; font-weight: 300;
+    color: rgba(255,255,255,0.52);
     line-height: 1.4;
     padding-left: 0.7rem; position: relative;
   }
   .week-will-list li::before {
     content: '→'; position: absolute; left: 0;
-    color: var(--violet); font-size: 0.6rem;
+    color: var(--violet); font-size: 0.58rem;
   }
-  .week-includes {
-    font-size: 0.6rem; font-weight: 300;
-    color: rgba(201,168,76,0.5);
-    margin-top: auto; line-height: 1.5;
+  .week-back-lock {
+    font-size: 0.75rem; opacity: 0.25;
+    margin-top: auto; text-align: right;
   }
   .unlock-cta {
     text-align: center;
@@ -821,13 +825,14 @@
         <div class="week-face week-back">
           <div class="week-back-num">Week 01</div>
           <div class="week-back-title">Naming Your Season</div>
+          <div class="week-back-desc">This is where you stop managing symptoms and start understanding your season. We release the medicalized narrative and map your body's actual landscape.</div>
           <div class="week-will-label">You will</div>
           <ul class="week-will-list">
             <li>Release the diagnosis narrative around menopause</li>
             <li>Map your personal symptom landscape</li>
             <li>Locate yourself in the perimenopause spectrum</li>
           </ul>
-          <div class="week-includes">Includes: Symptom Sovereignty Map (FL-M01)</div>
+          <div class="week-back-lock">🔒</div>
         </div>
       </div>
     </div>
@@ -849,13 +854,14 @@
         <div class="week-face week-back">
           <div class="week-back-num">Week 02</div>
           <div class="week-back-title">The Body's New Language</div>
+          <div class="week-back-desc">Your body has shifted its vocabulary — and this week you learn to read it. Hormonal literacy, TCM mapping, and the practice of symptom journaling.</div>
           <div class="week-will-label">You will</div>
           <ul class="week-will-list">
             <li>Build foundational hormonal literacy</li>
             <li>Begin your daily symptom journal</li>
             <li>Learn TCM body mapping for the transition</li>
           </ul>
-          <div class="week-includes">Includes: 30-Day Symptom Tracker (FL-M02)</div>
+          <div class="week-back-lock">🔒</div>
         </div>
       </div>
     </div>
@@ -877,13 +883,14 @@
         <div class="week-face week-back">
           <div class="week-back-num">Week 03</div>
           <div class="week-back-title">Sleep as Sacred Practice</div>
+          <div class="week-back-desc">Sleep disruption in this season is not failure — it is your body asking for a new ritual. This week you build one.</div>
           <div class="week-will-label">You will</div>
           <ul class="week-will-list">
             <li>Build a personalised restoration ritual</li>
             <li>Apply the night sweats protocol</li>
             <li>Realign your circadian rhythm naturally</li>
           </ul>
-          <div class="week-includes">Includes: sleep protocol workbook · dream journaling guide</div>
+          <div class="week-back-lock">🔒</div>
         </div>
       </div>
     </div>
@@ -905,13 +912,14 @@
         <div class="week-face week-back">
           <div class="week-back-num">Week 04</div>
           <div class="week-back-title">Feeding the Elder</div>
+          <div class="week-back-desc">Food is medicine. This week draws from Ayurvedic, Afro-Cuban, Indigenous, and evidence-based frameworks to show you exactly what your body is asking for in this season.</div>
           <div class="week-will-label">You will</div>
           <ul class="week-will-list">
             <li>Learn food as medicine across four traditions</li>
             <li>Build an anti-inflammatory foundation</li>
             <li>Understand fasting in the context of this season</li>
           </ul>
-          <div class="week-includes">Includes: The Nourishment Playbook (FL-M03)</div>
+          <div class="week-back-lock">🔒</div>
         </div>
       </div>
     </div>
@@ -933,13 +941,14 @@
         <div class="week-face week-back">
           <div class="week-back-num">Week 05</div>
           <div class="week-back-title">The Emotional Landscape</div>
+          <div class="week-back-desc">The emotional shifts of this season have a neurological basis — they are signals, not symptoms. This week you learn to read them.</div>
           <div class="week-will-label">You will</div>
           <ul class="week-will-list">
             <li>Understand the neurological basis of emotional shifts</li>
             <li>Learn to read your signals — not suppress them</li>
             <li>Find the philosophy of the second spring</li>
           </ul>
-          <div class="week-includes">Includes: somatic practices guide · emotional mapping workbook</div>
+          <div class="week-back-lock">🔒</div>
         </div>
       </div>
     </div>
@@ -961,13 +970,14 @@
         <div class="week-face week-back">
           <div class="week-back-num">Week 06</div>
           <div class="week-back-title">Moving Through Change</div>
+          <div class="week-back-desc">Movement in this season is not about maintenance — it is about reclamation. Strength, pelvic floor restoration, and breath as anchor.</div>
           <div class="week-will-label">You will</div>
           <ul class="week-will-list">
             <li>Build a sustainable movement practice for this season</li>
             <li>Begin pelvic floor restoration</li>
             <li>Use breath as a daily anchor practice</li>
           </ul>
-          <div class="week-includes">Includes: Perimenopause Field Guide (FL-M06)</div>
+          <div class="week-back-lock">🔒</div>
         </div>
       </div>
     </div>
@@ -989,13 +999,14 @@
         <div class="week-face week-back">
           <div class="week-back-num">Week 07</div>
           <div class="week-back-title">Reclaiming Desire</div>
+          <div class="week-back-desc">Desire does not diminish in this season — it transforms. This week reframes sexuality, intimacy, and embodied pleasure entirely on your terms.</div>
           <div class="week-will-label">You will</div>
           <ul class="week-will-list">
             <li>Reframe sexuality and intimacy in this season</li>
             <li>Reconnect to libido as life force — not loss</li>
             <li>Build embodied pleasure practices on your terms</li>
           </ul>
-          <div class="week-includes">Includes: embodied practices guide · partner communication framework</div>
+          <div class="week-back-lock">🔒</div>
         </div>
       </div>
     </div>
@@ -1017,13 +1028,14 @@
         <div class="week-face week-back">
           <div class="week-back-num">Week 08</div>
           <div class="week-back-title">The Elder Initiation</div>
+          <div class="week-back-desc">This is the week everything comes together. You write your Hormonal Sovereignty Declaration and enter your elder season — named, claimed, declared.</div>
           <div class="week-will-label">You will</div>
           <ul class="week-will-list">
             <li>Write your Hormonal Sovereignty Declaration</li>
             <li>Complete your integration ceremony</li>
             <li>Enter your elder season — named, claimed, declared</li>
           </ul>
-          <div class="week-includes">Includes: FL-M05 · The 90-Day Sovereignty Journal (FL-M07)</div>
+          <div class="week-back-lock">🔒</div>
         </div>
       </div>
     </div>
