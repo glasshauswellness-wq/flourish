@@ -375,9 +375,24 @@
   .meet-priya {
     background: var(--night);
     padding: 7rem 6rem;
-    display: grid; grid-template-columns: 1fr 1.2fr;
-    gap: 5rem; align-items: start;
+    display: grid; grid-template-columns: 340px 1fr;
+    gap: 4rem; align-items: start;
     position: relative; overflow: hidden;
+  }
+  .meet-priya-right {
+    display: grid; grid-template-columns: 1fr 1.15fr;
+    gap: 3.5rem; align-items: center;
+  }
+  .priya-pricing-section {
+    background: var(--night-mid);
+    padding: 5rem 6rem;
+  }
+  .priya-pricing-section .pricing-label {
+    text-align: center; margin-bottom: 2rem;
+  }
+  .priya-pricing-section .priya-pricing {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem; max-width: 900px; margin: 0 auto;
   }
 
   .meet-priya::before {
@@ -907,8 +922,11 @@
     .priya-orb-wrap { width: 280px; height: 280px; }
     .hero-quote { display: none; }
     .intro-band { padding: 2rem; }
-    .manifesto, .meet-priya, .program, .revolution, .tools, .intake-section { padding: 4rem 2rem; }
-    .manifesto, .meet-priya, .intake-section { grid-template-columns: 1fr; }
+    .manifesto, .meet-priya, .program, .revolution, .tools { padding: 4rem 2rem; }
+    .manifesto, .meet-priya { grid-template-columns: 1fr; }
+    .meet-priya-right { grid-template-columns: 1fr; }
+    .priya-pricing-section { padding: 4rem 2rem; }
+    .priya-pricing-section .priya-pricing { grid-template-columns: 1fr; }
     .weeks-grid, .tools-grid { grid-template-columns: 1fr 1fr; }
     footer { grid-template-columns: 1fr; padding: 2.5rem 2rem; }
   }
@@ -1702,9 +1720,55 @@ nav {
     <a href="#start" class="btn-primary">Begin — First session free</a>
   </div>
 
-  <div class="priya-pricing" id="start">
-    <div class="pricing-label">Choose Your Depth</div>
+  <div class="meet-priya-right">
+    <div class="intake-copy">
+      <div class="section-eyebrow">Your First Conversation</div>
+      <h2 class="section-title" style="color: var(--cream);">Priya begins<br>by listening.</h2>
+      <p class="section-sub">She does not start with symptoms. She starts with you.</p>
+      <ul>
+        <li>No forms. No questionnaires. A real conversation.</li>
+        <li>She reads tone, not just words. She knows when you are ready to go deeper.</li>
+        <li>First session is always free. No card required.</li>
+        <li>Your data stays in your Digital Wellness Passport — and nowhere else.</li>
+      </ul>
+    </div>
 
+    <div class="chat-demo">
+      <div class="chat-header">
+        <div class="chat-avatar">P</div>
+        <div>
+          <div class="chat-name">PRIYA</div>
+          <div class="chat-status">Present with you</div>
+        </div>
+      </div>
+      <div class="chat-body">
+        <div class="msg priya" style="--d: 0.2s">
+          <span class="msg-sender">Priya</span>
+          <div class="msg-bubble">I have been waiting for you. Not in the way that feels like pressure — in the way that feels like someone has been holding the door open.</div>
+        </div>
+        <div class="msg priya" style="--d: 0.5s">
+          <div class="msg-bubble">Before we talk about symptoms or programs or anything clinical — I want to ask you something simpler: how would you describe where you are right now? Not medically. Just... where you are.</div>
+        </div>
+        <div class="msg user" style="--d: 0.9s">
+          <span class="msg-sender">You</span>
+          <div class="msg-bubble">helo</div>
+        </div>
+        <div class="msg priya" style="--d: 1.3s">
+          <div class="msg-bubble">Thank you for sharing that with me. I am holding it carefully. To go deeper together, begin your free session — I will be there waiting.</div>
+        </div>
+      </div>
+      <div class="chat-input-row">
+        <input class="chat-input" type="text" placeholder="Tell Priya where you are…" />
+        <button class="chat-send">&#x2192;</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CHOOSE YOUR DEPTH -->
+<section class="priya-pricing-section" id="start">
+  <div class="pricing-label">Choose Your Depth</div>
+  <div class="priya-pricing">
     <div class="pricing-card">
       <div class="pricing-tier">Tier 01</div>
       <div class="pricing-name">First Conversation</div>
@@ -2521,50 +2585,6 @@ nav {
     </div>
   </div>
 </div><!-- end t30 -->
-</section>
-<!-- INTAKE DEMO -->
-<section class="intake-section">
-  <div class="intake-copy">
-    <div class="section-eyebrow">Your First Conversation</div>
-    <h2 class="section-title" style="color: var(--cream);">Priya begins<br>by listening.</h2>
-    <p class="section-sub">She does not start with symptoms. She starts with you.</p>
-    <ul>
-      <li>No forms. No questionnaires. A real conversation.</li>
-      <li>She reads tone, not just words. She knows when you are ready to go deeper.</li>
-      <li>First session is always free. No card required.</li>
-      <li>Your data stays in your Digital Wellness Passport — and nowhere else.</li>
-    </ul>
-  </div>
-
-  <div class="chat-demo">
-    <div class="chat-header">
-      <div class="chat-avatar">P</div>
-      <div>
-        <div class="chat-name">PRIYA</div>
-        <div class="chat-status">Present with you</div>
-      </div>
-    </div>
-    <div class="chat-body">
-      <div class="msg priya" style="--d: 0.2s">
-        <span class="msg-sender">Priya</span>
-        <div class="msg-bubble">I have been waiting for you. Not in the way that feels like pressure — in the way that feels like someone has been holding the door open.</div>
-      </div>
-      <div class="msg priya" style="--d: 0.5s">
-        <div class="msg-bubble">Before we talk about symptoms or programs or anything clinical — I want to ask you something simpler: how would you describe where you are right now? Not medically. Just... where you are.</div>
-      </div>
-      <div class="msg user" style="--d: 0.9s">
-        <span class="msg-sender">You</span>
-        <div class="msg-bubble">Honestly? I feel like I don't recognize myself anymore. My body is doing things I don't understand and no one is really explaining it.</div>
-      </div>
-      <div class="msg priya" style="--d: 1.3s">
-        <div class="msg-bubble">That disorientation is one of the most honest things anyone can say about where you are. And here is what I want you to know before we go any further: you are not broken. You are mid-transformation. There is a difference — and I am going to help you feel it.</div>
-      </div>
-    </div>
-    <div class="chat-input-row">
-      <input class="chat-input" type="text" placeholder="Tell Priya where you are…" />
-      <button class="chat-send">&#x2192;</button>
-    </div>
-  </div>
 </section>
 
 <!-- FOOTER -->
