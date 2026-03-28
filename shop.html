@@ -367,12 +367,14 @@
     position: relative;
     width: 100%; height: 100%;
     transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
     transition: transform 0.55s cubic-bezier(0.4,0.2,0.2,1);
     border-radius: 0.75rem;
   }
   .week-card:hover .week-card-inner,
   .week-card.flipped .week-card-inner {
     transform: rotateY(180deg);
+    -webkit-transform: rotateY(180deg);
   }
   .week-face {
     position: absolute; inset: 0;
@@ -380,7 +382,6 @@
     padding: 1.25rem;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
-    overflow: hidden;
   }
   .week-front {
     background: rgba(26,18,37,0.85);
