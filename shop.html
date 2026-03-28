@@ -357,36 +357,104 @@
     gap: 1rem;
     margin-bottom: 2.5rem;
   }
+  /* ── FLIP CARD ── */
   .week-card {
-    background: rgba(26,18,37,0.8);
-    border: 0.5px solid rgba(155,127,212,0.15);
-    border-radius: 0.75rem;
-    padding: 1.5rem 1.25rem;
-    position: relative;
-    transition: border-color 0.2s;
+    height: 220px;
+    perspective: 1000px;
+    cursor: pointer;
   }
-  .week-card:hover { border-color: rgba(155,127,212,0.3); }
+  .week-card-inner {
+    position: relative;
+    width: 100%; height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(0.4,0.2,0.2,1);
+    border-radius: 0.75rem;
+  }
+  .week-card:hover .week-card-inner,
+  .week-card.flipped .week-card-inner {
+    transform: rotateY(180deg);
+  }
+  .week-face {
+    position: absolute; inset: 0;
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    overflow: hidden;
+  }
+  .week-front {
+    background: rgba(26,18,37,0.85);
+    border: 0.5px solid rgba(155,127,212,0.15);
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .week-back {
+    background: linear-gradient(145deg, rgba(45,31,61,0.97), rgba(26,18,37,0.99));
+    border: 0.5px solid rgba(155,127,212,0.3);
+    transform: rotateY(180deg);
+    display: flex; flex-direction: column; gap: 0.55rem;
+  }
   .week-lock {
-    position: absolute; top: 1rem; right: 1rem;
-    font-size: 0.9rem; opacity: 0.4;
+    font-size: 0.85rem; opacity: 0.35; align-self: flex-end;
   }
   .week-num {
     font-family: 'Cinzel', serif;
-    font-size: 0.6rem; letter-spacing: 0.25em;
+    font-size: 0.55rem; letter-spacing: 0.25em;
     color: var(--gold); opacity: 0.7;
     text-transform: uppercase;
-    margin-bottom: 0.5rem;
   }
   .week-title {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 1.1rem; font-weight: 400;
-    color: rgba(255,255,255,0.65);
-    line-height: 1.3; margin-bottom: 0.5rem;
+    font-size: 1.05rem; font-weight: 400;
+    color: rgba(255,255,255,0.75);
+    line-height: 1.3;
   }
   .week-topics {
-    font-size: 0.75rem; font-weight: 300;
-    color: rgba(255,255,255,0.3);
-    line-height: 1.6;
+    font-size: 0.68rem; font-weight: 300;
+    color: rgba(255,255,255,0.28);
+    line-height: 1.65;
+  }
+  .week-hint {
+    font-size: 0.58rem; letter-spacing: 0.12em;
+    color: rgba(155,127,212,0.45);
+    text-transform: uppercase; text-align: right;
+    margin-top: auto;
+  }
+  /* back face */
+  .week-back-num {
+    font-family: 'Cinzel', serif;
+    font-size: 0.52rem; letter-spacing: 0.2em;
+    color: var(--gold); opacity: 0.6;
+    text-transform: uppercase;
+  }
+  .week-back-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.9rem; font-weight: 600; font-style: italic;
+    color: rgba(255,255,255,0.8);
+    line-height: 1.25; margin-bottom: 0.15rem;
+  }
+  .week-will-label {
+    font-size: 0.58rem; letter-spacing: 0.2em;
+    color: var(--sage); text-transform: uppercase;
+    opacity: 0.7;
+  }
+  .week-will-list {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-direction: column; gap: 0.2rem;
+  }
+  .week-will-list li {
+    font-size: 0.7rem; font-weight: 300;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.4;
+    padding-left: 0.7rem; position: relative;
+  }
+  .week-will-list li::before {
+    content: '→'; position: absolute; left: 0;
+    color: var(--violet); font-size: 0.6rem;
+  }
+  .week-includes {
+    font-size: 0.6rem; font-weight: 300;
+    color: rgba(201,168,76,0.5);
+    margin-top: auto; line-height: 1.5;
   }
   .unlock-cta {
     text-align: center;
@@ -736,60 +804,228 @@
 
   <div class="weeks-grid">
 
-    <div class="week-card" data-category="8-week">
-      <div class="week-lock">🔒</div>
-      <div class="week-num">Week 01</div>
-      <div class="week-title">Naming Your Season</div>
-      <div class="week-topics">Understanding the transition · releasing the diagnosis narrative · mapping your symptoms</div>
+    <!-- Week 01 -->
+    <div class="week-card" data-category="8-week" onclick="this.classList.toggle('flipped')">
+      <div class="week-card-inner">
+        <div class="week-face week-front">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div class="week-num">Week 01</div>
+            <div class="week-lock">🔒</div>
+          </div>
+          <div>
+            <div class="week-title">Naming Your Season</div>
+            <div class="week-topics">Understanding the transition · releasing the diagnosis narrative · mapping your symptoms</div>
+          </div>
+          <div class="week-hint">hover to explore →</div>
+        </div>
+        <div class="week-face week-back">
+          <div class="week-back-num">Week 01</div>
+          <div class="week-back-title">Naming Your Season</div>
+          <div class="week-will-label">You will</div>
+          <ul class="week-will-list">
+            <li>Release the diagnosis narrative around menopause</li>
+            <li>Map your personal symptom landscape</li>
+            <li>Locate yourself in the perimenopause spectrum</li>
+          </ul>
+          <div class="week-includes">Includes: Symptom Sovereignty Map (FL-M01)</div>
+        </div>
+      </div>
     </div>
 
-    <div class="week-card" data-category="8-week">
-      <div class="week-lock">🔒</div>
-      <div class="week-num">Week 02</div>
-      <div class="week-title">The Body's New Language</div>
-      <div class="week-topics">Hormonal literacy · symptom journaling · TCM body mapping · the yin-yang shift</div>
+    <!-- Week 02 -->
+    <div class="week-card" data-category="8-week" onclick="this.classList.toggle('flipped')">
+      <div class="week-card-inner">
+        <div class="week-face week-front">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div class="week-num">Week 02</div>
+            <div class="week-lock">🔒</div>
+          </div>
+          <div>
+            <div class="week-title">The Body's New Language</div>
+            <div class="week-topics">Hormonal literacy · symptom journaling · TCM body mapping · the yin-yang shift</div>
+          </div>
+          <div class="week-hint">hover to explore →</div>
+        </div>
+        <div class="week-face week-back">
+          <div class="week-back-num">Week 02</div>
+          <div class="week-back-title">The Body's New Language</div>
+          <div class="week-will-label">You will</div>
+          <ul class="week-will-list">
+            <li>Build foundational hormonal literacy</li>
+            <li>Begin your daily symptom journal</li>
+            <li>Learn TCM body mapping for the transition</li>
+          </ul>
+          <div class="week-includes">Includes: 30-Day Symptom Tracker (FL-M02)</div>
+        </div>
+      </div>
     </div>
 
-    <div class="week-card" data-category="8-week">
-      <div class="week-lock">🔒</div>
-      <div class="week-num">Week 03</div>
-      <div class="week-title">Sleep as Sacred Practice</div>
-      <div class="week-topics">Restoration rituals · circadian realignment · night sweats protocol · dream work</div>
+    <!-- Week 03 -->
+    <div class="week-card" data-category="8-week" onclick="this.classList.toggle('flipped')">
+      <div class="week-card-inner">
+        <div class="week-face week-front">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div class="week-num">Week 03</div>
+            <div class="week-lock">🔒</div>
+          </div>
+          <div>
+            <div class="week-title">Sleep as Sacred Practice</div>
+            <div class="week-topics">Restoration rituals · circadian realignment · night sweats protocol · dream work</div>
+          </div>
+          <div class="week-hint">hover to explore →</div>
+        </div>
+        <div class="week-face week-back">
+          <div class="week-back-num">Week 03</div>
+          <div class="week-back-title">Sleep as Sacred Practice</div>
+          <div class="week-will-label">You will</div>
+          <ul class="week-will-list">
+            <li>Build a personalised restoration ritual</li>
+            <li>Apply the night sweats protocol</li>
+            <li>Realign your circadian rhythm naturally</li>
+          </ul>
+          <div class="week-includes">Includes: sleep protocol workbook · dream journaling guide</div>
+        </div>
+      </div>
     </div>
 
-    <div class="week-card" data-category="8-week">
-      <div class="week-lock">🔒</div>
-      <div class="week-num">Week 04</div>
-      <div class="week-title">Feeding the Elder</div>
-      <div class="week-topics">Ancestral food wisdom · anti-inflammatory foundations · bone broth traditions · fasting considerations</div>
+    <!-- Week 04 -->
+    <div class="week-card" data-category="8-week" onclick="this.classList.toggle('flipped')">
+      <div class="week-card-inner">
+        <div class="week-face week-front">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div class="week-num">Week 04</div>
+            <div class="week-lock">🔒</div>
+          </div>
+          <div>
+            <div class="week-title">Feeding the Elder</div>
+            <div class="week-topics">Ancestral food wisdom · anti-inflammatory foundations · bone broth traditions · fasting considerations</div>
+          </div>
+          <div class="week-hint">hover to explore →</div>
+        </div>
+        <div class="week-face week-back">
+          <div class="week-back-num">Week 04</div>
+          <div class="week-back-title">Feeding the Elder</div>
+          <div class="week-will-label">You will</div>
+          <ul class="week-will-list">
+            <li>Learn food as medicine across four traditions</li>
+            <li>Build an anti-inflammatory foundation</li>
+            <li>Understand fasting in the context of this season</li>
+          </ul>
+          <div class="week-includes">Includes: The Nourishment Playbook (FL-M03)</div>
+        </div>
+      </div>
     </div>
 
-    <div class="week-card" data-category="8-week">
-      <div class="week-lock">🔒</div>
-      <div class="week-num">Week 05</div>
-      <div class="week-title">The Emotional Landscape</div>
-      <div class="week-topics">Rage as signal · grief as release · anxiety reframing · the second spring philosophy</div>
+    <!-- Week 05 -->
+    <div class="week-card" data-category="8-week" onclick="this.classList.toggle('flipped')">
+      <div class="week-card-inner">
+        <div class="week-face week-front">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div class="week-num">Week 05</div>
+            <div class="week-lock">🔒</div>
+          </div>
+          <div>
+            <div class="week-title">The Emotional Landscape</div>
+            <div class="week-topics">Rage as signal · grief as release · anxiety reframing · the second spring philosophy</div>
+          </div>
+          <div class="week-hint">hover to explore →</div>
+        </div>
+        <div class="week-face week-back">
+          <div class="week-back-num">Week 05</div>
+          <div class="week-back-title">The Emotional Landscape</div>
+          <div class="week-will-label">You will</div>
+          <ul class="week-will-list">
+            <li>Understand the neurological basis of emotional shifts</li>
+            <li>Learn to read your signals — not suppress them</li>
+            <li>Find the philosophy of the second spring</li>
+          </ul>
+          <div class="week-includes">Includes: somatic practices guide · emotional mapping workbook</div>
+        </div>
+      </div>
     </div>
 
-    <div class="week-card" data-category="8-week">
-      <div class="week-lock">🔒</div>
-      <div class="week-num">Week 06</div>
-      <div class="week-title">Moving Through Change</div>
-      <div class="week-topics">Yin yoga foundations · strength as medicine · pelvic floor restoration · breath as anchor</div>
+    <!-- Week 06 -->
+    <div class="week-card" data-category="8-week" onclick="this.classList.toggle('flipped')">
+      <div class="week-card-inner">
+        <div class="week-face week-front">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div class="week-num">Week 06</div>
+            <div class="week-lock">🔒</div>
+          </div>
+          <div>
+            <div class="week-title">Moving Through Change</div>
+            <div class="week-topics">Yin yoga foundations · strength as medicine · pelvic floor restoration · breath as anchor</div>
+          </div>
+          <div class="week-hint">hover to explore →</div>
+        </div>
+        <div class="week-face week-back">
+          <div class="week-back-num">Week 06</div>
+          <div class="week-back-title">Moving Through Change</div>
+          <div class="week-will-label">You will</div>
+          <ul class="week-will-list">
+            <li>Build a sustainable movement practice for this season</li>
+            <li>Begin pelvic floor restoration</li>
+            <li>Use breath as a daily anchor practice</li>
+          </ul>
+          <div class="week-includes">Includes: Perimenopause Field Guide (FL-M06)</div>
+        </div>
+      </div>
     </div>
 
-    <div class="week-card" data-category="8-week">
-      <div class="week-lock">🔒</div>
-      <div class="week-num">Week 07</div>
-      <div class="week-title">Reclaiming Desire</div>
-      <div class="week-topics">Sexuality & intimacy reframing · libido as life force · embodied pleasure practices · partner communication</div>
+    <!-- Week 07 -->
+    <div class="week-card" data-category="8-week" onclick="this.classList.toggle('flipped')">
+      <div class="week-card-inner">
+        <div class="week-face week-front">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div class="week-num">Week 07</div>
+            <div class="week-lock">🔒</div>
+          </div>
+          <div>
+            <div class="week-title">Reclaiming Desire</div>
+            <div class="week-topics">Sexuality & intimacy reframing · libido as life force · embodied pleasure practices · partner communication</div>
+          </div>
+          <div class="week-hint">hover to explore →</div>
+        </div>
+        <div class="week-face week-back">
+          <div class="week-back-num">Week 07</div>
+          <div class="week-back-title">Reclaiming Desire</div>
+          <div class="week-will-label">You will</div>
+          <ul class="week-will-list">
+            <li>Reframe sexuality and intimacy in this season</li>
+            <li>Reconnect to libido as life force — not loss</li>
+            <li>Build embodied pleasure practices on your terms</li>
+          </ul>
+          <div class="week-includes">Includes: embodied practices guide · partner communication framework</div>
+        </div>
+      </div>
     </div>
 
-    <div class="week-card" data-category="8-week">
-      <div class="week-lock">🔒</div>
-      <div class="week-num">Week 08</div>
-      <div class="week-title">The Elder Initiation</div>
-      <div class="week-topics">Integration ceremony · elder archetype work · community & legacy · your sovereignty declaration</div>
+    <!-- Week 08 -->
+    <div class="week-card" data-category="8-week" onclick="this.classList.toggle('flipped')">
+      <div class="week-card-inner">
+        <div class="week-face week-front">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div class="week-num">Week 08</div>
+            <div class="week-lock">🔒</div>
+          </div>
+          <div>
+            <div class="week-title">The Elder Initiation</div>
+            <div class="week-topics">Integration ceremony · elder archetype work · community & legacy · your sovereignty declaration</div>
+          </div>
+          <div class="week-hint">hover to explore →</div>
+        </div>
+        <div class="week-face week-back">
+          <div class="week-back-num">Week 08</div>
+          <div class="week-back-title">The Elder Initiation</div>
+          <div class="week-will-label">You will</div>
+          <ul class="week-will-list">
+            <li>Write your Hormonal Sovereignty Declaration</li>
+            <li>Complete your integration ceremony</li>
+            <li>Enter your elder season — named, claimed, declared</li>
+          </ul>
+          <div class="week-includes">Includes: FL-M05 · The 90-Day Sovereignty Journal (FL-M07)</div>
+        </div>
+      </div>
     </div>
 
   </div>
