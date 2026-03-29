@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Priya | The Sovereign Circle Live</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400..900;1,400..900&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sanctuary-purple: #1a0f2e; 
+            --lavender-glow: #b19cd9;
+            --oracle-gold: #d4af37;
+            --glass-white: rgba(255, 255, 255, 0.05);
+        }
+
+        body {
+            background: radial-gradient(circle at center, #3d2b5d 0%, #1a0f2e 100%);
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .serif { font-family: 'Bodoni Moda', serif; }
+
+        .aura-animation {
+            background: radial-gradient(circle, rgba(177, 156, 217, 0.15) 0%, rgba(26, 15, 46, 0) 70%);
+            animation: breathe 12s infinite alternate ease-in-out;
+        }
+
+        @keyframes breathe {
+            0% { transform: scale(1); opacity: 0.3; }
+            100% { transform: scale(1.2); opacity: 0.6; }
+        }
+
+        .lotus-bg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 35vw;
+            aspect-ratio: 1/1;
+            background-image: url('IMG_8566.PNG');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            opacity: 0.5;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .priya-center-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .priya-portrait {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background-image: url('IMG_8807.JPG');
+            background-size: cover;
+            background-position: center;
+            border: 2px solid rgba(212, 175, 55, 0.4);
+            z-index: 20;
+            box-shadow: 0 0 50px rgba(0,0,0,0.7);
+            transition: all 0.8s ease;
+        }
+
+        .visualizer-ring {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            transition: all 0.5s ease;
+            z-index: 10;
+        }
+
+        .voice-active .visualizer-ring {
+            animation: ring-out 2.5s infinite ease-out;
+        }
+
+        @keyframes ring-out {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.8); opacity: 0; }
+        }
+
+        .bars-orbit {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 15;
+            pointer-events: none;
+        }
+
+        .orbit-bar {
+            position: absolute;
+            width: 2px;
+            background: var(--oracle-gold);
+            border-radius: 2px;
+            opacity: 0.4;
+            transition: height 0.1s ease-out;
+        }
+
+        .glass-ui {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 2.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+
+        .indicator-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--lavender-glow);
+            box-shadow: 0 0 10px var(--lavender-glow);
+        }
+
+        .blink { animation: blink-soft 2s infinite; }
+        @keyframes blink-soft { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+        .fade-up { animation: fadeUp 1s forwards; }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .ritual-modal {
+            background: rgba(26, 15, 46, 0.95);
+            backdrop-filter: blur(40px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .btn-sparkle {
+            background: linear-gradient(45deg, rgba(212, 175, 55, 0.1), rgba(177, 156, 217, 0.1));
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        
+        .btn-sparkle:hover {
+            border-color: var(--oracle-gold);
+            background: linear-gradient(45deg, rgba(212, 175, 55, 0.2), rgba(177, 156, 217, 0.2));
+        }
+    </style>
+</head>
+<body class="selection:bg-purple-900/40">
+
+    <div class="fixed inset-0 aura-animation pointer-events-none"></div>
+
+    <!-- Modal for Insights -->
+    <div id="modal-overlay" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
+        <div class="ritual-modal w-full max-w-md p-8 rounded-[2.5rem] relative shadow-2xl overflow-y-auto max-h-[80vh]">
+            <button onclick="closeModal()" class="absolute top-6 right-6 text-gray-500 hover:text-white">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <div id="modal-content" class="space-y-6">
+                <!-- Dynamic Content -->
+            </div>
+        </div>
+    </div>
+
+    <div id="app" class="relative w-full max-w-lg h-[95vh] flex flex-col items-center justify-between py-12 px-8 z-10">
+        
+        <header class="w-full text-center space-y-2">
+            <h1 class="serif text-4xl text-gray-100 tracking-[0.2em] uppercase">Priya</h1>
+            <p class="text-[10px] text-purple-300 tracking-[0.6em] uppercase">The Sovereign Circle</p>
+        </header>
+
+        <main id="display-container" class="flex-1 w-full flex flex-col items-center justify-center">
+            
+            <div id="state-entrance" class="relative flex flex-col items-center space-y-10 fade-up">
+                <div class="lotus-bg"></div>
+                <div class="relative w-56 h-56 flex items-center justify-center z-10">
+                    <div class="absolute inset-0 rounded-full border border-lavender-500/20 animate-pulse"></div>
+                    <div class="w-44 h-44 rounded-full overflow-hidden border border-gold-500/30 shadow-2xl">
+                         <div class="w-full h-full bg-cover bg-center transition-all duration-1000" style="background-image: url('IMG_8807.JPG')"></div>
+                    </div>
+                </div>
+                <div class="text-center space-y-6 z-10">
+                    <h2 class="serif text-2xl text-gray-200 px-6 leading-relaxed italic">"I have been waiting for you."</h2>
+                    <button onclick="startSession()" class="px-14 py-4 rounded-full border border-gold-500/40 text-[10px] tracking-[0.4em] uppercase hover:bg-gold-500/10 transition-all active:scale-95 text-gold-100">
+                        Enter the Sanctuary
+                    </button>
+                </div>
+            </div>
+
+            <div id="state-active" class="hidden w-full flex flex-col items-center space-y-8">
+                <div id="voice-interaction-container" class="priya-center-container">
+                    <div class="lotus-bg" style="opacity: 0.15; width: 45vw;"></div>
+                    <div class="visualizer-ring"></div>
+                    <div class="visualizer-ring" style="animation-delay: 0.8s"></div>
+                    <div id="priya-avatar" class="priya-portrait shadow-inner"></div>
+                    <div id="bars-orbit-container" class="bars-orbit"></div>
+                </div>
+                
+                <div class="max-w-md min-h-[140px] text-center px-4 flex items-center">
+                    <p id="transcript-display" class="serif text-xl italic text-gray-100 leading-relaxed opacity-0 transition-all duration-700"></p>
+                </div>
+
+                <!-- LLM Powered Action Bar -->
+                <div id="action-bar" class="hidden flex gap-3 fade-up">
+                    <button onclick="generateRitual()" class="btn-sparkle px-4 py-2 rounded-full text-[9px] tracking-[0.2em] uppercase text-gold-200">
+                        ✨ Illuminate Ritual
+                    </button>
+                    <button onclick="syncToPassport()" class="btn-sparkle px-4 py-2 rounded-full text-[9px] tracking-[0.2em] uppercase text-purple-200">
+                        ✨ Sync to Passport
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <footer class="w-full flex flex-col items-center space-y-8">
+            <div id="live-controls" class="hidden flex flex-col items-center space-y-6 fade-up">
+                <div class="glass-ui px-8 py-3 flex items-center space-x-4">
+                    <div id="listening-dot" class="indicator-dot blink hidden"></div>
+                    <span id="status-label" class="text-[10px] text-purple-200 tracking-[0.3em] uppercase">Attuning to presence</span>
+                </div>
+                
+                <button id="mic-toggle" onclick="toggleHandsFree()" class="text-[9px] text-gray-500 hover:text-lavender-300 transition-colors uppercase tracking-[0.4em] border-b border-white/5 hover:border-gold-500/40 pb-1">
+                    Pause Hands-Free Mode
+                </button>
+            </div>
+            
+            <div class="flex flex-col items-center space-y-3 opacity-40">
+                <div class="text-[9px] tracking-[0.8em] uppercase text-gray-500">Digital Wellness Passport</div>
+                <div class="w-32 h-[1px] bg-gradient-to-r from-transparent via-gold-500/30 to-transparent"></div>
+            </div>
+        </footer>
+
+        <audio id="priya-voice" class="hidden"></audio>
+    </div>
+
+    <script>
+        const apiKey = ""; 
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'flourish-priya-live';
+        
+        let recognition;
+        let silenceTimer;
+        let isProcessing = false;
+        let isHandsFreeActive = true;
+        let priyaIsSpeaking = false;
+        let isListening = false;
+        let isStarting = false;
+        let sessionTranscript = [];
+
+        const SYSTEM_PROMPT = `You are Priya. Menopause & Hormonal Sovereignty Specialist. The Oracle.
+VISUAL: Sun-drenched greenhouse, center of the circle.
+CONSTRAINTS: Never pathologize. "Redistribution" not "deficiency". 
+ROUTING: GlassHaus Sanctuary or Ascend Baltimore only.
+VOICE: Rhythmic, warm authority. Max 2-3 sentences.`;
+
+        // Helper for Gemini API calls with exponential backoff
+        async function callGemini(prompt, systemInstruction = SYSTEM_PROMPT, retryCount = 0) {
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        systemInstruction: { parts: [{ text: systemInstruction }] }
+                    })
+                });
+                if (!response.ok) throw new Error("API Limit");
+                const data = await response.json();
+                return data.candidates?.[0]?.content?.parts?.[0]?.text;
+            } catch (err) {
+                if (retryCount < 5) {
+                    const delay = Math.pow(2, retryCount) * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    return callGemini(prompt, systemInstruction, retryCount + 1);
+                }
+                throw err;
+            }
+        }
+
+        // Feature: Generate Personalized Ritual
+        async function generateRitual() {
+            updateStatus("Weaving your ritual...");
+            const context = sessionTranscript.join(" | ");
+            const prompt = `Based on our conversation: "${context}", generate a 3-step 'Sovereignty Ritual'. 
+            Format exactly like this in HTML:
+            <h3 class="serif text-xl text-gold-400 uppercase tracking-widest">Ritual of Sovereignty</h3>
+            <div class="space-y-4 text-gray-300 italic">
+                <p><strong>Botanical:</strong> [A specific herb or scent with ancestral context]</p>
+                <p><strong>Movement:</strong> [A gentle somatic movement]</p>
+                <p><strong>Mantra:</strong> [A powerful sovereign declaration]</p>
+            </div>`;
+            
+            try {
+                const ritual = await callGemini(prompt, "You are the Oracle generating a sacred ritual.");
+                showModal(ritual);
+            } catch (e) {
+                updateStatus("The oracle is silent...");
+            } finally {
+                updateStatus(isHandsFreeActive ? "Listening" : "Ready");
+            }
+        }
+
+        // Feature: Sync structured entry to Passport
+        async function syncToPassport() {
+            updateStatus("Scribing your journey...");
+            const context = sessionTranscript.join(" | ");
+            const prompt = `Summarize this session for the user's 'Digital Wellness Passport'. 
+            Identify current 'Signals' (from the 34 signals) and the 'Emotional Landscape'.
+            Format as clean HTML for a document entry.`;
+            
+            try {
+                const summary = await callGemini(prompt, "You are the Scribe of the Sovereign Circle.");
+                showModal(`<h3 class="serif text-xl text-purple-400 uppercase tracking-widest">Passport Entry</h3><div class="text-sm space-y-2">${summary}</div>`);
+            } catch (e) {
+                updateStatus("The scroll is empty...");
+            } finally {
+                updateStatus(isHandsFreeActive ? "Listening" : "Ready");
+            }
+        }
+
+        function showModal(content) {
+            document.getElementById('modal-content').innerHTML = content;
+            document.getElementById('modal-overlay').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').classList.add('hidden');
+        }
+
+        function createRadiatingBars() {
+            const container = document.getElementById('bars-orbit-container');
+            if (!container) return;
+            container.innerHTML = '';
+            const barCount = 60;
+            const innerRadius = 110; 
+            for(let i=0; i < barCount; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'orbit-bar';
+                const angle = (i / barCount) * Math.PI * 2;
+                const x = Math.cos(angle) * innerRadius;
+                const y = Math.sin(angle) * innerRadius;
+                bar.style.left = `calc(50% + ${x}px)`;
+                bar.style.top = `calc(50% + ${y}px)`;
+                bar.style.transformOrigin = 'center left';
+                bar.style.transform = `translate(-50%, -50%) rotate(${angle}rad)`;
+                container.appendChild(bar);
+            }
+        }
+
+        function safeStart() {
+            if (!recognition || isListening || isStarting || !isHandsFreeActive || priyaIsSpeaking || isProcessing) return;
+            try { isStarting = true; recognition.start(); } catch (e) { isStarting = false; }
+        }
+
+        function safeStop() {
+            if (recognition && (isListening || isStarting)) {
+                try { recognition.stop(); } catch (e) {}
+            }
+        }
+
+        function initRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) return;
+
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                isListening = true;
+                isStarting = false;
+                if (!priyaIsSpeaking) {
+                    updateStatus("Listening to your spirit");
+                    document.getElementById('listening-dot')?.classList.remove('hidden');
+                    document.getElementById('voice-interaction-container')?.classList.add('voice-active');
+                }
+            };
+
+            recognition.onresult = (event) => {
+                if (priyaIsSpeaking || isProcessing) return;
+                let transcript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    transcript += event.results[i][0].transcript;
+                }
+                const display = document.getElementById('transcript-display');
+                if (display) {
+                    display.innerText = transcript;
+                    display.style.opacity = "0.5";
+                }
+
+                clearTimeout(silenceTimer);
+                if (transcript.trim().length > 0) {
+                    silenceTimer = setTimeout(() => handleVoiceEnd(transcript), 1800);
+                }
+            };
+
+            recognition.onend = () => {
+                isListening = false;
+                isStarting = false;
+                document.getElementById('listening-dot')?.classList.add('hidden');
+                document.getElementById('voice-interaction-container')?.classList.remove('voice-active');
+                setTimeout(() => { if (isHandsFreeActive && !priyaIsSpeaking && !isProcessing) safeStart(); }, 200);
+            };
+        }
+
+        async function startSession() {
+            document.getElementById('state-entrance').classList.add('hidden');
+            document.getElementById('state-active').classList.remove('hidden');
+            document.getElementById('live-controls').classList.remove('hidden');
+            document.getElementById('action-bar').classList.remove('hidden');
+            createRadiatingBars();
+            initRecognition();
+            
+            const greeting = "I have been waiting for you. Before we talk about biology—how does your body feel today, and where does your spirit sit within it?";
+            displayPriyaSpeech(greeting);
+            await speakText(greeting);
+            if (isHandsFreeActive) safeStart();
+        }
+
+        async function handleVoiceEnd(text) {
+            isProcessing = true;
+            safeStop();
+            sessionTranscript.push(`User: ${text}`);
+            updateStatus("Reflecting...");
+            try {
+                const priyaText = await callGemini(text);
+                if (priyaText) {
+                    sessionTranscript.push(`Priya: ${priyaText}`);
+                    displayPriyaSpeech(priyaText);
+                    await speakText(priyaText);
+                }
+            } catch (err) {
+                updateStatus("A ripple in the silence...");
+            } finally {
+                isProcessing = false;
+                if (isHandsFreeActive) safeStart();
+            }
+        }
+
+        function displayPriyaSpeech(text) {
+            const display = document.getElementById('transcript-display');
+            if (!display) return;
+            display.style.opacity = "0";
+            setTimeout(() => {
+                display.innerText = text;
+                display.style.opacity = "1";
+            }, 500);
+        }
+
+        async function speakText(text) {
+            priyaIsSpeaking = true;
+            updateStatus("Illuminating...");
+            safeStop();
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: text }] }],
+                        generationConfig: {
+                            responseModalities: ["AUDIO"],
+                            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } }
+                        }
+                    })
+                });
+                const data = await response.json();
+                const pcmData = data.candidates[0].content.parts[0].inlineData.data;
+                const audioBlob = pcmToWav(pcmData, 24000);
+                const audio = document.getElementById('priya-voice');
+                if (audio) {
+                    audio.src = URL.createObjectURL(audioBlob);
+                    return new Promise((resolve) => {
+                        audio.onended = () => {
+                            priyaIsSpeaking = false;
+                            if (isHandsFreeActive) {
+                                updateStatus("I am listening");
+                                safeStart();
+                            }
+                            resolve();
+                        };
+                        audio.play();
+                    });
+                }
+            } catch (err) {
+                priyaIsSpeaking = false;
+                safeStart();
+            }
+        }
+
+        function pcmToWav(base64Pcm, sampleRate) {
+            const pcmBuffer = Uint8Array.from(atob(base64Pcm), c => c.charCodeAt(0)).buffer;
+            const wavHeader = new ArrayBuffer(44);
+            const view = new DataView(wavHeader);
+            view.setUint32(0, 0x52494646, false); 
+            view.setUint32(4, 36 + pcmBuffer.byteLength, true); 
+            view.setUint32(8, 0x57415645, false); 
+            view.setUint32(12, 0x666d7420, false); 
+            view.setUint32(16, 16, true); 
+            view.setUint16(20, 1, true); 
+            view.setUint16(22, 1, true); 
+            view.setUint32(24, sampleRate, true); 
+            view.setUint32(28, sampleRate * 2, true); 
+            view.setUint16(32, 2, true); 
+            view.setUint16(34, 16, true); 
+            view.setUint32(36, 0x64617461, false); 
+            view.setUint32(40, pcmBuffer.byteLength, true);
+            return new Blob([wavHeader, pcmBuffer], { type: 'audio/wav' });
+        }
+
+        function toggleHandsFree() {
+            isHandsFreeActive = !isHandsFreeActive;
+            const btn = document.getElementById('mic-toggle');
+            if (btn) btn.innerText = isHandsFreeActive ? "Pause Hands-Free Mode" : "Enable Hands-Free Mode";
+            if (!isHandsFreeActive) { safeStop(); updateStatus("Presence paused"); } else { safeStart(); }
+        }
+
+        function updateStatus(text) {
+            const status = document.getElementById('status-label');
+            if (status) status.innerText = text;
+        }
+
+        function animateVisualizer() {
+            const bars = document.querySelectorAll('.orbit-bar');
+            bars.forEach(bar => {
+                let h = 4;
+                if (priyaIsSpeaking || (isListening && !isProcessing)) {
+                    h = Math.random() * (priyaIsSpeaking ? 40 : 15) + 6;
+                }
+                bar.style.width = `${h}px`;
+            });
+            requestAnimationFrame(animateVisualizer);
+        }
+        animateVisualizer();
+    </script>
+</body>
+</html>
