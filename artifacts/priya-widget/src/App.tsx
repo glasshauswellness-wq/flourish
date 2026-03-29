@@ -169,7 +169,16 @@ export default function App() {
     }
   }, []);
 
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+
+  const unlockAudio = useCallback(() => {
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new AudioContext();
+    }
+    if (audioCtxRef.current.state === "suspended") {
+      audioCtxRef.current.resume().catch(() => {});
+    }
+  }, []);
 
   const speakText = useCallback(async (text: string) => {
     isSpeakingRef.current = true;
@@ -180,17 +189,21 @@ export default function App() {
       const binary = atob(data.audio);
       const bytes = new Uint8Array(binary.length);
       for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-      const blob = new Blob([bytes], { type: "audio/mpeg" });
-      const url = URL.createObjectURL(blob);
-      if (!audioRef.current) audioRef.current = new Audio();
-      audioRef.current.src = url;
+
+      if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
+      const ctx = audioCtxRef.current;
+      if (ctx.state === "suspended") await ctx.resume();
+
+      const audioBuffer = await ctx.decodeAudioData(bytes.buffer);
       await new Promise<void>((resolve) => {
-        if (!audioRef.current) { resolve(); return; }
-        audioRef.current.onended = () => { URL.revokeObjectURL(url); resolve(); };
-        audioRef.current.onerror = () => { URL.revokeObjectURL(url); resolve(); };
-        audioRef.current.play().catch(() => resolve());
+        const source = ctx.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(ctx.destination);
+        source.onended = () => resolve();
+        source.start(0);
       });
-    } catch {
+    } catch (err) {
+      console.error("speakText error:", err);
     }
     isSpeakingRef.current = false;
     setVoiceActive(false);
@@ -285,6 +298,7 @@ export default function App() {
   }, [updateStatus, handleVoiceEnd, safeStart]);
 
   const startSession = useCallback(async () => {
+    unlockAudio(); // must be synchronous in the click handler
     setAppState("active");
     setTimeout(() => {
       if (barsContainerRef.current) createBars(barsContainerRef.current);
@@ -296,7 +310,7 @@ export default function App() {
     historyRef.current.push({ role: "model", parts: [{ text: greeting }] });
     await speakText(greeting);
     if (isHandsFreeRef.current) safeStart();
-  }, [initRecognition, displaySpeech, speakText, safeStart]);
+  }, [unlockAudio, initRecognition, displaySpeech, speakText, safeStart]);
 
   const toggleHandsFree = useCallback(() => {
     const next = !isHandsFreeRef.current;
@@ -309,6 +323,7 @@ export default function App() {
   const handleTextSubmit = useCallback(async () => {
     const text = textInput.trim();
     if (!text || isProcessingRef.current) return;
+    unlockAudio(); // synchronous in click handler
     setTextInput("");
     setIsProcessing(true);
     setTranscriptSource("user");
@@ -316,7 +331,7 @@ export default function App() {
     setTranscriptOpacity(1);
     await handleVoiceEnd(text);
     setIsProcessing(false);
-  }, [textInput, handleVoiceEnd]);
+  }, [textInput, unlockAudio, handleVoiceEnd]);
 
   const generateRitual = useCallback(async () => {
     updateStatus("Weaving your ritual...");
