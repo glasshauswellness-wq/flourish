@@ -469,16 +469,6 @@ export default function App() {
                 </p>
               </div>
 
-              {showActions && (
-                <div className="action-bar fade-up">
-                  <button className="btn-sparkle" onClick={generateRitual}>
-                    ✨ Illuminate Ritual
-                  </button>
-                  <button className="btn-sparkle" onClick={syncToPassport}>
-                    ✨ Sync to Passport
-                  </button>
-                </div>
-              )}
             </div>
           )}
         </main>
