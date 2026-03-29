@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import "./priya.css";
+const lotusImg = import.meta.env.BASE_URL + "lotus-transparent.png";
+import priyaImg from "@assets/3AE65435-F171-41EB-9DD9-0EE7625AC3CF_1774744679511.jpeg";
 
 const BASE_URL = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -355,10 +357,12 @@ export default function App() {
         <main className="priya-main">
           {appState === "entrance" && (
             <div className="entrance fade-up">
-              <div className="lotus-bg" />
-              <div className="portrait-ring">
-                <div className="portrait-pulse" />
-                <div className="portrait-img entrance-portrait" />
+              <div className="portrait-area">
+                <div className="lotus-bg entrance-lotus" style={{ backgroundImage: `url(${lotusImg})` }} />
+                <div className="portrait-ring">
+                  <div className="portrait-pulse" />
+                  <div className="portrait-img entrance-portrait" style={{ backgroundImage: `url(${priyaImg})` }} />
+                </div>
               </div>
               <div className="entrance-text">
                 <h2 className="welcome-quote serif">"I have been waiting for you."</h2>
@@ -372,10 +376,10 @@ export default function App() {
           {appState === "active" && (
             <div className="active-state">
               <div className={`voice-container${voiceActive || isListening ? " voice-active" : ""}`}>
-                <div className="lotus-bg small-lotus" />
+                <div className="lotus-bg small-lotus" style={{ backgroundImage: `url(${lotusImg})` }} />
                 <div className="visualizer-ring" />
                 <div className="visualizer-ring ring-delay" />
-                <div className="priya-portrait" />
+                <div className="priya-portrait" style={{ backgroundImage: `url(${priyaImg})` }} />
                 <div className="bars-orbit" ref={barsContainerRef} />
               </div>
 
