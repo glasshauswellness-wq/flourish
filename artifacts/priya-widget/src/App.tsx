@@ -91,24 +91,6 @@ function animateBars(bars: NodeListOf<Element>, active: boolean) {
   });
 }
 
-function browserSpeak(text: string): Promise<void> {
-  return new Promise<void>((resolve) => {
-    if (!window.speechSynthesis) { resolve(); return; }
-    window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance(text);
-    const voices = window.speechSynthesis.getVoices();
-    const voice =
-      voices.find(v => v.name === "Google US English") ||
-      voices.find(v => v.lang.startsWith("en") && v.name.toLowerCase().includes("female")) ||
-      voices.find(v => v.lang.startsWith("en"));
-    if (voice) utt.voice = voice;
-    utt.rate = 0.88;
-    utt.pitch = 1.05;
-    utt.onend = () => resolve();
-    utt.onerror = () => resolve();
-    window.speechSynthesis.speak(utt);
-  });
-}
 
 function downloadTranscript(lines: string[]) {
   const text = lines.join("\n\n");
@@ -132,6 +114,7 @@ export default function App() {
   const [voiceActive, setVoiceActive] = useState(false);
   const [modal, setModal] = useState<ModalContent>(null);
   const [showActions, setShowActions] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const [textInput, setTextInput] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [passportSynced, setPassportSynced] = useState(false);
@@ -191,8 +174,6 @@ export default function App() {
     stopListening();
     isSpeakingRef.current = true;
     setVoiceActive(true);
-
-    let usedElevenLabs = false;
     try {
       const data = await apiPost<{ audio: string; format: string }>("/speak", { text });
       const binary = atob(data.audio);
@@ -209,15 +190,9 @@ export default function App() {
         source.onended = () => resolve();
         source.start(0);
       });
-      usedElevenLabs = true;
     } catch {
-      // ElevenLabs unavailable (quota, network) — fall back to browser speech
+      // Voice unavailable — conversation continues silently
     }
-
-    if (!usedElevenLabs) {
-      await browserSpeak(text);
-    }
-
     isSpeakingRef.current = false;
     setVoiceActive(false);
   }, [stopListening]);
@@ -539,17 +514,30 @@ export default function App() {
               </div>
 
               {showActions && (
-                <div className="action-bar fade-up">
-                  <button className="btn-sparkle" onClick={syncToPassport}>
-                    ✨ Sync to Passport
+                <div className="session-menu-wrap">
+                  <button
+                    className="session-menu-btn"
+                    onClick={() => setShowMenu(m => !m)}
+                    aria-label="Session options"
+                  >
+                    <span className="session-menu-dots">•••</span>
                   </button>
-                  {passportSynced && (
-                    <button
-                      className="btn-sparkle"
-                      onClick={() => downloadTranscript(sessionTranscriptRef.current)}
-                    >
-                      ⬇ Download Conversation
-                    </button>
+                  {showMenu && (
+                    <div className="session-dropdown fade-up" onClick={() => setShowMenu(false)}>
+                      <button
+                        className="dropdown-item"
+                        onClick={syncToPassport}
+                      >
+                        ✨ Sync to Passport
+                      </button>
+                      <button
+                        className="dropdown-item"
+                        onClick={() => downloadTranscript(sessionTranscriptRef.current)}
+                        disabled={sessionTranscriptRef.current.length === 0}
+                      >
+                        ⬇ Download Conversation
+                      </button>
+                    </div>
                   )}
                 </div>
               )}
