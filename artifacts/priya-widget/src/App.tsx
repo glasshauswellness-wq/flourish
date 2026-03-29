@@ -194,7 +194,6 @@ export default function App() {
   const speakText = useCallback(async (text: string) => {
     isSpeakingRef.current = true;
     setVoiceActive(true);
-    updateStatus("Illuminating...");
     safeStop();
     try {
       const data = await apiPost<{ pcmData: string }>("/speak", { text });
@@ -212,14 +211,12 @@ export default function App() {
     }
     isSpeakingRef.current = false;
     setVoiceActive(false);
-    if (isHandsFreeRef.current) {
-      updateStatus("I am listening");
-      safeStart();
-    }
-  }, [updateStatus, safeStop, safeStart]);
+  }, [safeStop]);
 
   const handleVoiceEnd = useCallback(async (text: string) => {
+    if (isProcessingRef.current) return;
     isProcessingRef.current = true;
+    if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
     safeStop();
     sessionTranscriptRef.current.push(`User: ${text}`);
     const userTurn = { role: "user", parts: [{ text }] };
@@ -233,7 +230,7 @@ export default function App() {
         (accumulated) => {
           if (firstChunk) {
             firstChunk = false;
-            updateStatus("Illuminating...");
+            updateStatus("Preparing voice...");
           }
           setTranscriptSource("priya");
           setTranscript(accumulated);
@@ -244,13 +241,19 @@ export default function App() {
         sessionTranscriptRef.current.push(`Priya: ${fullText}`);
         historyRef.current.push({ role: "model", parts: [{ text: fullText }] });
         setShowActions(true);
+        updateStatus("Illuminating...");
         await speakText(fullText);
       }
     } catch {
       updateStatus("A ripple in the silence...");
     } finally {
       isProcessingRef.current = false;
-      if (isHandsFreeRef.current) safeStart();
+      if (isHandsFreeRef.current) {
+        updateStatus("I am listening");
+        safeStart();
+      } else {
+        updateStatus("Ready");
+      }
     }
   }, [safeStop, safeStart, updateStatus, speakText]);
 
