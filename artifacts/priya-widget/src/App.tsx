@@ -71,27 +71,6 @@ async function apiStream(
   return full;
 }
 
-function pcmToWav(base64Pcm: string, sampleRate: number): Blob {
-  const pcmBuffer = Uint8Array.from(atob(base64Pcm), (c) =>
-    c.charCodeAt(0)
-  ).buffer;
-  const wavHeader = new ArrayBuffer(44);
-  const view = new DataView(wavHeader);
-  view.setUint32(0, 0x52494646, false);
-  view.setUint32(4, 36 + pcmBuffer.byteLength, true);
-  view.setUint32(8, 0x57415645, false);
-  view.setUint32(12, 0x666d7420, false);
-  view.setUint32(16, 16, true);
-  view.setUint16(20, 1, true);
-  view.setUint16(22, 1, true);
-  view.setUint32(24, sampleRate, true);
-  view.setUint32(28, sampleRate * 2, true);
-  view.setUint16(32, 2, true);
-  view.setUint16(34, 16, true);
-  view.setUint32(36, 0x64617461, false);
-  view.setUint32(40, pcmBuffer.byteLength, true);
-  return new Blob([wavHeader, pcmBuffer], { type: "audio/wav" });
-}
 
 function createBars(container: HTMLDivElement) {
   container.innerHTML = "";
@@ -143,7 +122,6 @@ export default function App() {
   const isListeningRef = useRef(false);
   const isHandsFreeRef = useRef(true);
   const sessionTranscriptRef = useRef<string[]>([]);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const barsContainerRef = useRef<HTMLDivElement | null>(null);
   const animFrameRef = useRef<number | null>(null);
   const historyRef = useRef<Array<{ role: string; parts: Array<{ text: string }> }>>([]);
@@ -195,20 +173,28 @@ export default function App() {
     isSpeakingRef.current = true;
     setVoiceActive(true);
     safeStop();
-    try {
-      const data = await apiPost<{ pcmData: string }>("/speak", { text });
-      const blob = pcmToWav(data.pcmData, 24000);
-      const url = URL.createObjectURL(blob);
-      if (!audioRef.current) audioRef.current = new Audio();
-      audioRef.current.src = url;
-      await new Promise<void>((resolve) => {
-        if (!audioRef.current) { resolve(); return; }
-        audioRef.current.onended = () => resolve();
-        audioRef.current.onerror = () => resolve();
-        audioRef.current.play().catch(() => resolve());
-      });
-    } catch {
-    }
+    await new Promise<void>((resolve) => {
+      if (!window.speechSynthesis) { resolve(); return; }
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      const pickVoice = () => {
+        const voices = window.speechSynthesis.getVoices();
+        const voice =
+          voices.find(v => v.name === "Google US English") ||
+          voices.find(v => v.lang.startsWith("en") && v.name.toLowerCase().includes("female")) ||
+          voices.find(v => v.lang.startsWith("en") && v.name.toLowerCase().includes("zira")) ||
+          voices.find(v => v.lang.startsWith("en") && v.name.toLowerCase().includes("samantha")) ||
+          voices.find(v => v.lang.startsWith("en"));
+        if (voice) utterance.voice = voice;
+      };
+      pickVoice();
+      utterance.rate = 0.88;
+      utterance.pitch = 1.05;
+      utterance.volume = 1.0;
+      utterance.onend = () => resolve();
+      utterance.onerror = () => resolve();
+      window.speechSynthesis.speak(utterance);
+    });
     isSpeakingRef.current = false;
     setVoiceActive(false);
   }, [safeStop]);
@@ -516,7 +502,6 @@ export default function App() {
           </footer>
         )}
 
-        <audio ref={audioRef} style={{ display: "none" }} />
       </div>
     </div>
   );
