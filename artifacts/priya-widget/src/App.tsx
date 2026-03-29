@@ -95,6 +95,8 @@ export default function App() {
   const [voiceActive, setVoiceActive] = useState(false);
   const [modal, setModal] = useState<ModalContent>(null);
   const [showActions, setShowActions] = useState(false);
+  const [textInput, setTextInput] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -266,6 +268,18 @@ export default function App() {
     else { safeStart(); }
   }, [safeStop, safeStart, updateStatus]);
 
+  const handleTextSubmit = useCallback(async () => {
+    const text = textInput.trim();
+    if (!text || isProcessingRef.current) return;
+    setTextInput("");
+    setIsProcessing(true);
+    setTranscriptSource("user");
+    setTranscript(text);
+    setTranscriptOpacity(1);
+    await handleVoiceEnd(text);
+    setIsProcessing(false);
+  }, [textInput, handleVoiceEnd]);
+
   const generateRitual = useCallback(async () => {
     updateStatus("Weaving your ritual...");
     try {
@@ -418,6 +432,25 @@ export default function App() {
 
         {appState === "active" && (
           <footer className="priya-footer">
+            <div className="text-input-row">
+              <input
+                className="text-input-field"
+                type="text"
+                placeholder="Type your message to Priya…"
+                value={textInput}
+                onChange={e => setTextInput(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && handleTextSubmit()}
+                disabled={isProcessing}
+              />
+              <button
+                className="text-send-btn"
+                onClick={handleTextSubmit}
+                disabled={!textInput.trim() || isProcessing}
+                aria-label="Send"
+              >
+                ↑
+              </button>
+            </div>
             <div className="glass-ui status-bar">
               {isListening && <div className="indicator-dot blink" />}
               <span className="status-text">{status}</span>
