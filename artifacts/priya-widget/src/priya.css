@@ -418,8 +418,8 @@
   height: 6px;
   flex-shrink: 0;
   border-radius: 50%;
-  background: var(--lavender-glow);
-  box-shadow: 0 0 10px var(--lavender-glow);
+  background: #4ade80;
+  box-shadow: 0 0 10px #4ade80;
 }
 
 .blink { animation: blink-soft 2s infinite; }
