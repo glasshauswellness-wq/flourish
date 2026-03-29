@@ -25,7 +25,7 @@ type ModalContent =
   | null;
 
 async function apiPost<T>(path: string, body: object): Promise<T> {
-  const res = await fetch(`${BASE_URL}/api/priya${path}`, {
+  const res = await fetch(`/api/priya${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
