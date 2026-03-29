@@ -620,8 +620,8 @@ router.post("/speak", async (req, res) => {
     return;
   }
 
-  // ElevenLabs voice: Sarah — warm, calm, authoritative
-  const VOICE_ID = "EXAVITQu4vr4xnSDxMaL";
+  // ElevenLabs voice: Lisa
+  const VOICE_ID = "fOIK8DRoVAMhtvfrPAbU";
 
   try {
     const elRes = await fetch(
