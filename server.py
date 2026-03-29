@@ -662,7 +662,8 @@ class FlourishHandler(http.server.SimpleHTTPRequestHandler):
                 config={
                     "system_instruction": system,
                     "temperature": 0.8,
-                    "max_output_tokens": 512,
+                    "max_output_tokens": 2048,
+                    "thinking_config": {"thinking_budget": 0},
                 }
             )
             expanded = response.text.strip()
