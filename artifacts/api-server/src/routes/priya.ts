@@ -504,7 +504,13 @@ router.post("/chat/stream", async (req, res) => {
     if (!geminiRes.ok) {
       const errText = await geminiRes.text();
       req.log.error({ status: geminiRes.status, body: errText }, "Gemini stream error");
-      res.write(`event: error\ndata: ${JSON.stringify({ error: "Gemini API error" })}\n\n`);
+      // Extract retry delay from Gemini 429 responses so the client can show it
+      let retryAfter = 0;
+      if (geminiRes.status === 429) {
+        const match = errText.match(/"retryDelay"\s*:\s*"(\d+)s"/);
+        if (match) retryAfter = parseInt(match[1], 10);
+      }
+      res.write(`event: error\ndata: ${JSON.stringify({ error: "Gemini API error", status: geminiRes.status, retryAfter })}\n\n`);
       res.end();
       return;
     }

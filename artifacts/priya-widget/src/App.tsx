@@ -43,6 +43,7 @@ async function apiStream(
   const decoder = new TextDecoder();
   let buf = "";
   let full = "";
+  let isError = false;
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
@@ -50,16 +51,26 @@ async function apiStream(
     const lines = buf.split("\n");
     buf = lines.pop() ?? "";
     for (const line of lines) {
+      // Detect server-sent error events before data lines
+      if (line.startsWith("event: error")) { isError = true; continue; }
       if (!line.startsWith("data: ")) continue;
       const raw = line.slice(6).trim();
       if (!raw || raw === "[DONE]") continue;
       try {
-        const chunk = JSON.parse(raw) as { delta?: string };
+        const chunk = JSON.parse(raw) as { delta?: string; error?: string; status?: number; retryAfter?: number };
+        if (isError || chunk.error) {
+          const msg = chunk.status === 429
+            ? `quota:${chunk.retryAfter ?? 0}`
+            : (chunk.error || "Stream error");
+          throw new Error(msg);
+        }
         if (chunk.delta) {
           full += chunk.delta;
           onDelta(full);
         }
-      } catch {}
+      } catch (e) {
+        throw e;
+      }
     }
   }
   return full;
@@ -162,6 +173,7 @@ export default function App() {
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const interruptRecRef = useRef<SpeechRecognition | null>(null);
+  const micStreamRef = useRef<MediaStream | null>(null);
   const currentAudioSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const passportDataRef = useRef<PassportEntry | null>(null);
   const isProcessingRef = useRef(false);
@@ -366,6 +378,9 @@ export default function App() {
   const handleVoiceEnd = useCallback(async (text: string) => {
     if (isProcessingRef.current) return;
     isProcessingRef.current = true;
+    // Capture hands-free state at the moment the exchange begins — restore it when done,
+    // so that pausing and text mode are not overridden by the finally block.
+    const wasHandsFree = isHandsFreeRef.current;
     stopListening();
     sessionTranscriptRef.current.push(`You: ${text}`);
     historyRef.current.push({ role: "user", parts: [{ text }] });
@@ -389,16 +404,26 @@ export default function App() {
         updateStatus("Illuminating...");
         await speakText(fullText);
       }
-    } catch {
-      updateStatus("A ripple in the silence…");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "";
+      if (msg.startsWith("quota:")) {
+        const secs = parseInt(msg.slice(6), 10);
+        const waitMsg = secs > 0 ? ` Try again in ${secs}s.` : " Please try again shortly.";
+        updateStatus(`One moment — I need to catch my breath.${waitMsg}`);
+      } else {
+        updateStatus("A ripple in the silence…");
+      }
     } finally {
       isProcessingRef.current = false;
       isTypingRef.current = false;
-      // Always restore to listening — it is the default and priority state
-      isHandsFreeRef.current = true;
-      setIsHandsFree(true);
-      updateStatus("I am listening");
-      setTimeout(() => startListeningRef.current(), 300);
+      // Restore to whatever hands-free state the user had before this exchange.
+      // Do NOT force hands-free on — respect pause and text-mode choices.
+      if (wasHandsFree && isHandsFreeRef.current) {
+        updateStatus("I am listening");
+        setTimeout(() => startListeningRef.current(), 300);
+      } else {
+        updateStatus("Ready");
+      }
     }
   }, [stopListening, updateStatus, speakText]);
 
@@ -406,6 +431,15 @@ export default function App() {
 
   const startSession = useCallback(async () => {
     unlockAudio();
+    // Request mic permission once up front so Chrome never re-prompts on each
+    // SpeechRecognition instance. Keep the stream alive for the whole session.
+    if (!micStreamRef.current && navigator.mediaDevices?.getUserMedia) {
+      try {
+        micStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch {
+        // Denied or unavailable — SpeechRecognition will handle gracefully
+      }
+    }
     setAppState("active");
     setTimeout(() => {
       if (barsContainerRef.current) createBars(barsContainerRef.current);
