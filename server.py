@@ -441,6 +441,10 @@ class FlourishHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_chat()
         elif self.path == "/api/checkout":
             self.handle_checkout()
+        elif self.path == "/api/voice/speak":
+            self.handle_voice_speak()
+        elif self.path == "/api/voice/more":
+            self.handle_voice_more()
         else:
             self.send_error(404, "Not found")
 
@@ -553,6 +557,96 @@ class FlourishHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header("Content-Type", "application/json")
             self.end_headers()
             self.wfile.write(json.dumps({"error": "Checkout unavailable. Please try again."}).encode())
+
+    def handle_voice_speak(self):
+        try:
+            length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(length)
+            data = json.loads(body)
+            text = data.get("text", "").strip()
+            voice = data.get("voice", "sage")
+
+            openai_key = os.environ.get("OPENAI_API_KEY")
+            if openai_key:
+                import urllib.request as req
+                payload = json.dumps({
+                    "model": "tts-1",
+                    "input": text,
+                    "voice": voice,
+                    "response_format": "mp3"
+                }).encode()
+                request = req.Request(
+                    "https://api.openai.com/v1/audio/speech",
+                    data=payload,
+                    headers={
+                        "Authorization": f"Bearer {openai_key}",
+                        "Content-Type": "application/json"
+                    }
+                )
+                with req.urlopen(request) as resp:
+                    audio_data = resp.read()
+                self.send_response(200)
+                self.send_header("Content-Type", "audio/mpeg")
+                self.end_headers()
+                self.wfile.write(audio_data)
+            else:
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"useClientTTS": True, "text": text}).encode())
+        except Exception as e:
+            print(f"Voice speak error: {e}")
+            self.send_response(500)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"useClientTTS": True, "text": data.get("text", "")}).encode())
+
+    def handle_voice_more(self):
+        try:
+            length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(length)
+            data = json.loads(body)
+            text = data.get("text", "").strip()
+
+            if not text:
+                self.send_response(400)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": "No text"}).encode())
+                return
+
+            system = (
+                "You are Priya — the Menopause and Hormonal Sovereignty Specialist of Flourish, "
+                "a GlassHaus wellness sanctuary. A visitor has selected text on the page and asked "
+                "for more detail. Expand the selected text in 2-4 warm, grounded sentences using "
+                "ancestral wisdom and clinical understanding. Speak directly to her experience. "
+                "Do not use bullet points or headers. Write in flowing prose only. "
+                "Reframe clinical language into empowering language. Never pathologize."
+            )
+
+            client = get_gemini_client()
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=[{"role": "user", "parts": [{"text": f'Expand this for the visitor: "{text}"'}]}],
+                config={
+                    "system_instruction": system,
+                    "temperature": 0.8,
+                    "max_output_tokens": 512,
+                }
+            )
+            expanded = response.text.strip()
+
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"expanded": expanded}).encode())
+
+        except Exception as e:
+            print(f"Voice more error: {e}")
+            self.send_response(500)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"expanded": data.get("text", "")}).encode())
 
     def log_message(self, format, *args):
         if "/api/" in str(args):

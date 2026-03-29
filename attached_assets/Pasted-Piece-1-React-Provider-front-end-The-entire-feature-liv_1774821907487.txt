@@ -1,0 +1,33 @@
+Piece 1 — React Provider (front end)
+The entire feature lives in PractitionerVoiceProvider.tsx — a single React context provider you wrap around your app. It handles all three triggers automatically:
+
+Hover on [data-speak="..."] — speaks that fixed string
+Hover on [data-hover-speak] — speaks the element's own text content
+Text selection anywhere — shows the floating dark pill with "Speak" + "AI · More Detail" checkbox
+You wrap it like this at the root of the partner site:
+
+<PractitionerVoiceProvider>
+  <App />
+</PractitionerVoiceProvider>
+The only two things you'll need to adjust for the partner site are the two API URLs near the top of the file:
+
+const SPEAK_API = '/api/voice/speak'   // ← change to partner site's endpoint
+const MORE_API  = '/api/voice/more'    // ← change to partner site's endpoint
+Piece 2 — Backend: /api/voice/speak
+POST receives { text, voice } → calls OpenAI TTS → returns raw audio/mpeg blob. The voice must be one of the 10 OpenAI voices (alloy, ash, coral, echo, fable, nova, onyx, sage, shimmer, verse). Falls back to sage if unrecognized. Full code is in artifacts/api-server/src/routes/voice.ts — the router.post("/speak", ...) block.
+
+Piece 3 — Backend: /api/voice/more
+POST receives { text } → sends to GPT-4o-mini with a warm wellness narrator system prompt → returns { expanded } (2–4 sentence expansion). The partner site just needs to swap the system prompt to match their brand voice. Same file — the router.post("/more", ...) block.
+
+What the partner site needs to run it
+Requirement	Detail
+OpenAI API access	Needs OPENAI_API_KEY (or Replit's AI integration key)
+TTS model	tts-1 via OpenAI — same as here
+AI expansion model	gpt-4o-mini
+React ≥ 17	Uses hooks + context, no other deps
+The textToSpeech helper used in the backend is a thin wrapper — on the partner site you can replace the single textToSpeech(text, voice, "mp3") call with a direct OpenAI SDK call:
+
+const response = await openai.audio.speech.create({
+  model: "tts-1", input: text, voice: voice, response_format: "mp3"
+});
+const buffer = Buffer.from(await response.arrayBuffer());

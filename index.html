@@ -2712,5 +2712,297 @@ if (grid) {
   });
 }
 </script>
+<style>
+  #fvp-pill {
+    position: fixed;
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(12, 8, 28, 0.97);
+    border: 0.5px solid rgba(155,127,212,0.45);
+    border-radius: 2rem;
+    padding: 0.45rem 0.85rem 0.45rem 0.6rem;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(155,127,212,0.1);
+    backdrop-filter: blur(12px);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    pointer-events: all;
+    transition: opacity 0.15s;
+    max-width: 340px;
+  }
+  #fvp-pill.fvp-loading { opacity: 0.7; }
+  #fvp-speak {
+    display: flex; align-items: center; gap: 0.35rem;
+    background: rgba(155,127,212,0.18);
+    border: 0.5px solid rgba(155,127,212,0.4);
+    border-radius: 1.5rem;
+    color: #e8deff;
+    padding: 0.3rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-family: 'DM Sans', sans-serif;
+    letter-spacing: 0.03em;
+    transition: background 0.2s;
+    white-space: nowrap;
+  }
+  #fvp-speak:hover { background: rgba(155,127,212,0.32); }
+  #fvp-speak.fvp-playing { background: rgba(155,127,212,0.38); color: #c9a84c; }
+  #fvp-speak svg { flex-shrink: 0; }
+  #fvp-more-label {
+    display: flex; align-items: center; gap: 0.3rem;
+    color: rgba(200,185,240,0.65);
+    cursor: pointer;
+    white-space: nowrap;
+    user-select: none;
+  }
+  #fvp-more-label:hover { color: rgba(200,185,240,0.9); }
+  #fvp-more-check { accent-color: #9b7fd4; cursor: pointer; width: 12px; height: 12px; }
+  #fvp-expanded {
+    display: none;
+    position: fixed;
+    z-index: 99998;
+    background: rgba(12, 8, 28, 0.97);
+    border: 0.5px solid rgba(155,127,212,0.3);
+    border-radius: 0.85rem;
+    padding: 1.1rem 1.25rem;
+    max-width: 340px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: rgba(232,222,255,0.88);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    backdrop-filter: blur(14px);
+  }
+  #fvp-expanded-close {
+    position: absolute; top: 0.5rem; right: 0.75rem;
+    background: none; border: none; color: rgba(155,127,212,0.6);
+    cursor: pointer; font-size: 1rem; line-height: 1; padding: 0;
+  }
+  #fvp-expanded-close:hover { color: #9b7fd4; }
+  #fvp-expanded-text { margin-top: 0.15rem; }
+  #fvp-expanded-speak {
+    margin-top: 0.75rem;
+    display: flex; align-items: center; gap: 0.3rem;
+    background: none; border: none;
+    color: rgba(155,127,212,0.75); cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 0.75rem;
+    padding: 0;
+  }
+  #fvp-expanded-speak:hover { color: #9b7fd4; }
+</style>
+
+<div id="fvp-pill">
+  <button id="fvp-speak">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+      <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+    </svg>
+    Speak
+  </button>
+  <label id="fvp-more-label">
+    <input type="checkbox" id="fvp-more-check"> AI · More Detail
+  </label>
+</div>
+
+<div id="fvp-expanded">
+  <button id="fvp-expanded-close">✕</button>
+  <div id="fvp-expanded-text"></div>
+  <button id="fvp-expanded-speak">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+    </svg>
+    Speak this
+  </button>
+</div>
+
+<script>
+(function() {
+  const pill        = document.getElementById('fvp-pill');
+  const speakBtn    = document.getElementById('fvp-speak');
+  const moreCheck   = document.getElementById('fvp-more-check');
+  const expandedBox = document.getElementById('fvp-expanded');
+  const expandedTxt = document.getElementById('fvp-expanded-text');
+  const expandClose = document.getElementById('fvp-expanded-close');
+  const expandSpeak = document.getElementById('fvp-expanded-speak');
+
+  let selectedText  = '';
+  let hoverTimer    = null;
+  let currentAudio  = null;
+  let voices        = [];
+
+  window.speechSynthesis.onvoiceschanged = () => { voices = window.speechSynthesis.getVoices(); };
+  setTimeout(() => { voices = window.speechSynthesis.getVoices(); }, 500);
+
+  function pickVoice() {
+    const prefs = ['Samantha','Karen','Victoria','Moira','Tessa','Google UK English Female','Microsoft Zira','Microsoft Susan'];
+    for (const name of prefs) {
+      const v = voices.find(v => v.name.includes(name));
+      if (v) return v;
+    }
+    return voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('female'))
+        || voices.find(v => v.lang.startsWith('en'))
+        || null;
+  }
+
+  async function speakText(text) {
+    if (!text) return;
+    stopSpeaking();
+    speakBtn.classList.add('fvp-playing');
+
+    try {
+      const res = await fetch('/api/voice/speak', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, voice: 'sage' })
+      });
+      const ct = res.headers.get('Content-Type') || '';
+      if (ct.includes('audio')) {
+        const blob = await res.blob();
+        const url  = URL.createObjectURL(blob);
+        currentAudio = new Audio(url);
+        currentAudio.onended = () => { speakBtn.classList.remove('fvp-playing'); URL.revokeObjectURL(url); };
+        currentAudio.play();
+        return;
+      }
+    } catch(e) {}
+
+    const utt = new SpeechSynthesisUtterance(text);
+    const v   = pickVoice();
+    if (v) utt.voice = v;
+    utt.rate  = 0.88;
+    utt.pitch = 1.05;
+    utt.onend = () => speakBtn.classList.remove('fvp-playing');
+    window.speechSynthesis.speak(utt);
+  }
+
+  function stopSpeaking() {
+    window.speechSynthesis.cancel();
+    if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+    speakBtn.classList.remove('fvp-playing');
+  }
+
+  function placePill(x, y) {
+    pill.style.display = 'flex';
+    requestAnimationFrame(() => {
+      const pw = pill.offsetWidth;
+      const ph = pill.offsetHeight;
+      let left = x - pw / 2;
+      let top  = y - ph - 10;
+      if (left < 8) left = 8;
+      if (left + pw > window.innerWidth - 8) left = window.innerWidth - pw - 8;
+      if (top < 8) top = y + 18;
+      pill.style.left = left + 'px';
+      pill.style.top  = top  + 'px';
+    });
+  }
+
+  function hidePill() {
+    pill.style.display = 'none';
+    moreCheck.checked = false;
+    stopSpeaking();
+  }
+
+  function placeExpanded(refLeft, refTop) {
+    expandedBox.style.display = 'block';
+    requestAnimationFrame(() => {
+      const ew = expandedBox.offsetWidth;
+      const eh = expandedBox.offsetHeight;
+      let left = parseFloat(refLeft);
+      let top  = parseFloat(refTop) - eh - 8;
+      if (left + ew > window.innerWidth - 8) left = window.innerWidth - ew - 8;
+      if (top < 8) top = parseFloat(refTop) + 40;
+      expandedBox.style.left = left + 'px';
+      expandedBox.style.top  = top  + 'px';
+    });
+  }
+
+  document.addEventListener('mouseup', e => {
+    if (e.target.closest('#fvp-pill') || e.target.closest('#fvp-expanded')) return;
+    setTimeout(() => {
+      const sel  = window.getSelection();
+      const text = sel ? sel.toString().trim() : '';
+      if (text.length > 8) {
+        selectedText = text;
+        placePill(e.clientX + window.scrollX, e.clientY + window.scrollY);
+      } else {
+        hidePill();
+        expandedBox.style.display = 'none';
+      }
+    }, 20);
+  });
+
+  document.addEventListener('mousedown', e => {
+    if (!e.target.closest('#fvp-pill') && !e.target.closest('#fvp-expanded')) {
+      hidePill();
+      expandedBox.style.display = 'none';
+    }
+  });
+
+  speakBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    if (speakBtn.classList.contains('fvp-playing')) { stopSpeaking(); return; }
+    if (moreCheck.checked && expandedTxt.textContent) {
+      speakText(expandedTxt.textContent);
+    } else {
+      speakText(selectedText);
+    }
+  });
+
+  moreCheck.addEventListener('change', async e => {
+    e.stopPropagation();
+    if (!moreCheck.checked) { expandedBox.style.display = 'none'; return; }
+    pill.classList.add('fvp-loading');
+    expandedTxt.textContent = 'Priya is listening…';
+    placeExpanded(pill.style.left, pill.style.top);
+    try {
+      const res  = await fetch('/api/voice/more', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: selectedText })
+      });
+      const data = await res.json();
+      expandedTxt.textContent = data.expanded || selectedText;
+      speakText(data.expanded || selectedText);
+    } catch(err) {
+      expandedTxt.textContent = selectedText;
+    }
+    pill.classList.remove('fvp-loading');
+    placeExpanded(pill.style.left, pill.style.top);
+  });
+
+  expandClose.addEventListener('click', () => {
+    expandedBox.style.display = 'none';
+    moreCheck.checked = false;
+    stopSpeaking();
+  });
+
+  expandSpeak.addEventListener('click', () => {
+    speakText(expandedTxt.textContent);
+  });
+
+  document.addEventListener('mouseover', e => {
+    const speakEl = e.target.closest('[data-speak]');
+    if (speakEl) {
+      clearTimeout(hoverTimer);
+      hoverTimer = setTimeout(() => speakText(speakEl.dataset.speak), 500);
+      return;
+    }
+    const hoverEl = e.target.closest('[data-hover-speak]');
+    if (hoverEl) {
+      clearTimeout(hoverTimer);
+      hoverTimer = setTimeout(() => speakText(hoverEl.textContent.trim()), 500);
+    }
+  });
+
+  document.addEventListener('mouseout', e => {
+    if (e.target.closest('[data-speak]') || e.target.closest('[data-hover-speak]')) {
+      clearTimeout(hoverTimer);
+    }
+  });
+})();
+</script>
 </body>
 </html>
