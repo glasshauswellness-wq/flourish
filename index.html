@@ -2837,7 +2837,7 @@ if (grid) {
   setTimeout(() => { voices = window.speechSynthesis.getVoices(); }, 500);
 
   function pickVoice() {
-    const prefs = ['Samantha','Karen','Victoria','Moira','Tessa','Google UK English Female','Microsoft Zira','Microsoft Susan'];
+    const prefs = ['Carolyn','Samantha','Karen','Victoria','Moira','Tessa','Google UK English Female','Microsoft Zira','Microsoft Susan'];
     for (const name of prefs) {
       const v = voices.find(v => v.name.includes(name));
       if (v) return v;

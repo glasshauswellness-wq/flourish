@@ -1308,7 +1308,7 @@ async function startCheckout(product, el) {
   let selectedText='',hoverTimer=null,currentAudio=null,voices=[];
   window.speechSynthesis.onvoiceschanged=()=>{voices=window.speechSynthesis.getVoices();};
   setTimeout(()=>{voices=window.speechSynthesis.getVoices();},500);
-  function pickVoice(){const p=['Samantha','Karen','Victoria','Moira','Tessa','Google UK English Female','Microsoft Zira'];for(const n of p){const v=voices.find(v=>v.name.includes(n));if(v)return v;}return voices.find(v=>v.lang.startsWith('en'))||null;}
+  function pickVoice(){const p=['Carolyn','Samantha','Karen','Victoria','Moira','Tessa','Google UK English Female','Microsoft Zira'];for(const n of p){const v=voices.find(v=>v.name.includes(n));if(v)return v;}return voices.find(v=>v.lang.startsWith('en'))||null;}
   async function speakText(text){if(!text)return;stopSpeaking();speakBtn.classList.add('fvp-playing');
     try{const res=await fetch('/api/voice/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,voice:'sage'})});
     const ct=res.headers.get('Content-Type')||'';if(ct.includes('audio')){const blob=await res.blob();const url=URL.createObjectURL(blob);currentAudio=new Audio(url);currentAudio.onended=()=>{speakBtn.classList.remove('fvp-playing');URL.revokeObjectURL(url);};currentAudio.play();return;}}catch(e){}
