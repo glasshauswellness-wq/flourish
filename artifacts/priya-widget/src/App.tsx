@@ -308,12 +308,12 @@ export default function App() {
       updateStatus("A ripple in the silence…");
     } finally {
       isProcessingRef.current = false;
-      if (isHandsFreeRef.current && !isTypingRef.current) {
-        updateStatus("I am listening");
-        setTimeout(() => startListeningRef.current(), 300);
-      } else {
-        updateStatus("Ready");
-      }
+      isTypingRef.current = false;
+      // Always restore to listening — it is the default and priority state
+      isHandsFreeRef.current = true;
+      setIsHandsFree(true);
+      updateStatus("I am listening");
+      setTimeout(() => startListeningRef.current(), 300);
     }
   }, [stopListening, updateStatus, speakText]);
 
@@ -513,34 +513,6 @@ export default function App() {
                 </p>
               </div>
 
-              {showActions && (
-                <div className="session-menu-wrap">
-                  <button
-                    className="session-menu-btn"
-                    onClick={() => setShowMenu(m => !m)}
-                    aria-label="Session options"
-                  >
-                    <span className="session-menu-dots">•••</span>
-                  </button>
-                  {showMenu && (
-                    <div className="session-dropdown fade-up" onClick={() => setShowMenu(false)}>
-                      <button
-                        className="dropdown-item"
-                        onClick={syncToPassport}
-                      >
-                        ✨ Sync to Passport
-                      </button>
-                      <button
-                        className="dropdown-item"
-                        onClick={() => downloadTranscript(sessionTranscriptRef.current)}
-                        disabled={sessionTranscriptRef.current.length === 0}
-                      >
-                        ⬇ Download Conversation
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           )}
         </main>
@@ -575,6 +547,31 @@ export default function App() {
             <button className="hands-free-btn" onClick={toggleHandsFree}>
               {isHandsFree ? "Pause Hands-Free Mode" : "Enable Hands-Free Mode"}
             </button>
+            {showActions && (
+              <div className="session-menu-wrap">
+                <button
+                  className="session-menu-btn"
+                  onClick={() => setShowMenu(m => !m)}
+                  aria-label="Session options"
+                >
+                  <span className="session-menu-dots">•••</span>
+                </button>
+                {showMenu && (
+                  <div className="session-dropdown" onClick={() => setShowMenu(false)}>
+                    <button className="dropdown-item" onClick={syncToPassport}>
+                      ✨ Sync to Passport
+                    </button>
+                    <button
+                      className="dropdown-item"
+                      onClick={() => downloadTranscript(sessionTranscriptRef.current)}
+                      disabled={sessionTranscriptRef.current.length === 0}
+                    >
+                      ⬇ Download Conversation
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </footer>
         )}
       </div>
