@@ -364,10 +364,10 @@ export default function App() {
                   <div className="portrait-img entrance-portrait" style={{ backgroundImage: `url(${priyaImg})` }} />
                 </div>
               </div>
-              <div className="flourish-badge">
-                <span className="flourish-name">FLOURISH</span>
-                <span className="flourish-sub">Powered by Glasshaus</span>
-              </div>
+              <button className="flourish-badge" onClick={startSession}>
+                <span className="flourish-name">Enter Flourish</span>
+                <span className="flourish-sub">a Glasshaus Pod</span>
+              </button>
 
               <div className="entrance-text">
                 <h2 className="welcome-quote serif">"I have been waiting for you."</h2>
