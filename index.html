@@ -2847,6 +2847,23 @@ if (grid) {
         || null;
   }
 
+  function speakWithBrowser(text) {
+    window.speechSynthesis.cancel();
+    const chunks = text.match(/[^.!?…]+[.!?…]*["']?\s*/g) || [text];
+    let idx = 0;
+    function next() {
+      if (idx >= chunks.length) { speakBtn.classList.remove('fvp-playing'); return; }
+      const utt = new SpeechSynthesisUtterance(chunks[idx++].trim());
+      const v = pickVoice();
+      if (v) utt.voice = v;
+      utt.rate = 0.88; utt.pitch = 1.05;
+      utt.onend = next;
+      utt.onerror = next;
+      window.speechSynthesis.speak(utt);
+    }
+    next();
+  }
+
   async function speakText(text) {
     if (!text) return;
     stopSpeaking();
@@ -2864,18 +2881,13 @@ if (grid) {
         const url  = URL.createObjectURL(blob);
         currentAudio = new Audio(url);
         currentAudio.onended = () => { speakBtn.classList.remove('fvp-playing'); URL.revokeObjectURL(url); };
+        currentAudio.onerror = () => { URL.revokeObjectURL(url); speakWithBrowser(text); };
         currentAudio.play();
         return;
       }
     } catch(e) {}
 
-    const utt = new SpeechSynthesisUtterance(text);
-    const v   = pickVoice();
-    if (v) utt.voice = v;
-    utt.rate  = 0.88;
-    utt.pitch = 1.05;
-    utt.onend = () => speakBtn.classList.remove('fvp-playing');
-    window.speechSynthesis.speak(utt);
+    speakWithBrowser(text);
   }
 
   function stopSpeaking() {
