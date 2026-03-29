@@ -92,10 +92,11 @@
   transform: translate(-50%, -50%);
   width: 400px;
   height: 400px;
-  background-size: 100% auto;
+  background-size: contain;
   background-repeat: no-repeat;
-  background-position: center 25%;
+  background-position: center center;
   opacity: 1;
+  mix-blend-mode: multiply;
   z-index: 5;
   pointer-events: none;
 }
@@ -103,7 +104,8 @@
 .small-lotus {
   width: 340px;
   height: 340px;
-  background-position: center 20%;
+  background-size: contain;
+  background-position: center center;
   opacity: 1;
 }
 
@@ -117,16 +119,16 @@
 
 .portrait-area {
   position: relative;
-  width: 380px;
-  height: 380px;
+  width: 400px;
+  height: 440px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .entrance-lotus {
-  width: 420px;
-  height: 420px;
+  width: 440px;
+  height: 480px;
   opacity: 1;
 }
 
@@ -165,7 +167,7 @@
   position: relative;
   overflow: hidden;
   z-index: 20;
-  opacity: 0.65;
+  opacity: 1;
 }
 
 .entrance-text {
