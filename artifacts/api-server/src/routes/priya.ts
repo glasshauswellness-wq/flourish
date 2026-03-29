@@ -620,8 +620,8 @@ router.post("/speak", async (req, res) => {
     return;
   }
 
-  // ElevenLabs voice: Lisa
-  const VOICE_ID = "fOIK8DRoVAMhtvfrPAbU";
+  // ElevenLabs voice: Jessica — expressive, American female
+  const VOICE_ID = "cgSgspJ2msm6clMCkdW9";
 
   try {
     const elRes = await fetch(
@@ -637,9 +637,9 @@ router.post("/speak", async (req, res) => {
           text,
           model_id: "eleven_turbo_v2_5",
           voice_settings: {
-            stability: 0.52,
-            similarity_boost: 0.78,
-            style: 0.15,
+            stability: 0.60,
+            similarity_boost: 0.82,
+            style: 0.25,
             use_speaker_boost: true,
           },
         }),
