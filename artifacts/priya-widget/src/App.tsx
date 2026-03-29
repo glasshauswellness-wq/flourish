@@ -372,11 +372,13 @@ export default function App() {
                 <span className="flourish-sub">a Glasshaus Pod</span>
               </button>
 
+              <div className="entrance-passport-link" onClick={startSession}>
+                <span className="passport-label">Digital Wellness Passport</span>
+                <div className="passport-line" />
+              </div>
+
               <div className="entrance-text">
                 <h2 className="welcome-quote serif">"I have been waiting for you."</h2>
-                <button className="enter-btn" onClick={startSession}>
-                  Enter the Sanctuary
-                </button>
               </div>
             </div>
           )}
@@ -425,11 +427,6 @@ export default function App() {
             </button>
           </footer>
         )}
-
-        <div className="passport-footer">
-          <span className="passport-label">Digital Wellness Passport</span>
-          <div className="passport-line" />
-        </div>
 
         <audio ref={audioRef} style={{ display: "none" }} />
       </div>
