@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import "./priya.css";
-const lotusImg = import.meta.env.BASE_URL + "lotus-transparent.png";
+const lotusImg = import.meta.env.BASE_URL + "lotus-flower.png";
 import priyaImg from "@assets/3AE65435-F171-41EB-9DD9-0EE7625AC3CF_1774744679511.jpeg";
 
 const BASE_URL = import.meta.env.BASE_URL.replace(/\/$/, "");
