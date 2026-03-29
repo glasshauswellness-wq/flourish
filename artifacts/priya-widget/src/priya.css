@@ -95,7 +95,7 @@
   background-size: 100% auto;
   background-repeat: no-repeat;
   background-position: center 25%;
-  opacity: 0.65;
+  opacity: 1;
   z-index: 5;
   pointer-events: none;
 }
@@ -104,7 +104,7 @@
   width: 340px;
   height: 340px;
   background-position: center 20%;
-  opacity: 0.5;
+  opacity: 1;
 }
 
 /* Entrance state */
@@ -127,7 +127,7 @@
 .entrance-lotus {
   width: 420px;
   height: 420px;
-  opacity: 0.75;
+  opacity: 1;
 }
 
 .portrait-ring {
@@ -165,7 +165,7 @@
   position: relative;
   overflow: hidden;
   z-index: 20;
-  opacity: 0.4;
+  opacity: 0.65;
 }
 
 .entrance-text {
