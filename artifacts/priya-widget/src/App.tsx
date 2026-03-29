@@ -115,16 +115,17 @@ export default function App() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isProcessingRef = useRef(false);
   const isSpeakingRef = useRef(false);
-  const isStartingRef = useRef(false);
   const isListeningRef = useRef(false);
   const isHandsFreeRef = useRef(true);
   const sessionTranscriptRef = useRef<string[]>([]);
   const barsContainerRef = useRef<HTMLDivElement | null>(null);
   const animFrameRef = useRef<number | null>(null);
   const historyRef = useRef<Array<{ role: string; parts: Array<{ text: string }> }>>([]);
+  // Refs to allow mutual calls without circular deps
+  const startListeningRef = useRef<() => void>(() => {});
+  const handleVoiceEndRef = useRef<(text: string) => Promise<void>>(async () => {});
 
   isHandsFreeRef.current = isHandsFree;
   isListeningRef.current = isListening;
@@ -146,27 +147,13 @@ export default function App() {
     }
   }, []);
 
-  const safeStop = useCallback(() => {
-    if (recognitionRef.current && (isListeningRef.current || isStartingRef.current)) {
-      try { recognitionRef.current.stop(); } catch {}
+  const stopListening = useCallback(() => {
+    if (recognitionRef.current) {
+      try { recognitionRef.current.abort(); } catch {}
+      recognitionRef.current = null;
     }
-  }, []);
-
-  const safeStart = useCallback(() => {
-    if (
-      !recognitionRef.current ||
-      isListeningRef.current ||
-      isStartingRef.current ||
-      !isHandsFreeRef.current ||
-      isSpeakingRef.current ||
-      isProcessingRef.current
-    ) return;
-    try {
-      isStartingRef.current = true;
-      recognitionRef.current.start();
-    } catch {
-      isStartingRef.current = false;
-    }
+    isListeningRef.current = false;
+    setIsListening(false);
   }, []);
 
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -181,9 +168,9 @@ export default function App() {
   }, []);
 
   const speakText = useCallback(async (text: string) => {
+    stopListening();
     isSpeakingRef.current = true;
     setVoiceActive(true);
-    safeStop();
     try {
       const data = await apiPost<{ audio: string; format: string }>("/speak", { text });
       const binary = atob(data.audio);
@@ -207,16 +194,83 @@ export default function App() {
     }
     isSpeakingRef.current = false;
     setVoiceActive(false);
-  }, [safeStop]);
+  }, [stopListening]);
+
+  // startListening: creates a fresh recognition instance each time (continuous=false)
+  // Chrome handles single-utterance sessions reliably; reuse causes rapid flicker
+  const startListening = useCallback(() => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return;
+    if (!isHandsFreeRef.current || isSpeakingRef.current || isProcessingRef.current) return;
+    if (isListeningRef.current) return;
+
+    stopListening(); // abort any stale instance
+
+    const rec = new SR();
+    rec.continuous = false;   // single utterance — reliable in Chrome
+    rec.interimResults = true;
+    rec.lang = "en-US";
+    rec.maxAlternatives = 1;
+
+    let capturedText = "";
+
+    rec.onstart = () => {
+      isListeningRef.current = true;
+      setIsListening(true);
+      updateStatus("Listening to your spirit");
+    };
+
+    rec.onresult = (event: SpeechRecognitionEvent) => {
+      if (isSpeakingRef.current || isProcessingRef.current) return;
+      let t = "";
+      for (let i = 0; i < event.results.length; i++) {
+        t += event.results[i][0].transcript;
+      }
+      capturedText = t;
+      setTranscriptSource("user");
+      setTranscript(t);
+      setTranscriptOpacity(0.5);
+    };
+
+    rec.onend = () => {
+      recognitionRef.current = null;
+      isListeningRef.current = false;
+      setIsListening(false);
+      const text = capturedText.trim();
+      if (text && !isSpeakingRef.current && !isProcessingRef.current) {
+        handleVoiceEndRef.current(text);
+      } else if (isHandsFreeRef.current && !isSpeakingRef.current && !isProcessingRef.current) {
+        setTimeout(() => startListeningRef.current(), 400);
+      }
+    };
+
+    rec.onerror = (event: SpeechRecognitionErrorEvent) => {
+      recognitionRef.current = null;
+      isListeningRef.current = false;
+      setIsListening(false);
+      const err = event.error;
+      if ((err === "no-speech" || err === "audio-capture") &&
+          isHandsFreeRef.current && !isSpeakingRef.current && !isProcessingRef.current) {
+        setTimeout(() => startListeningRef.current(), 400);
+      }
+    };
+
+    recognitionRef.current = rec;
+    try { rec.start(); } catch {
+      isListeningRef.current = false;
+      setIsListening(false);
+    }
+  }, [stopListening, updateStatus]);
+
+  // Keep refs current so callbacks always call the latest version
+  startListeningRef.current = startListening;
 
   const handleVoiceEnd = useCallback(async (text: string) => {
     if (isProcessingRef.current) return;
     isProcessingRef.current = true;
-    if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
-    safeStop();
+    stopListening();
     sessionTranscriptRef.current.push(`User: ${text}`);
-    const userTurn = { role: "user", parts: [{ text }] };
-    historyRef.current.push(userTurn);
+    historyRef.current.push({ role: "user", parts: [{ text }] });
     updateStatus("Reflecting...");
     try {
       let firstChunk = true;
@@ -224,10 +278,7 @@ export default function App() {
         "/chat/stream",
         { prompt: text, history: historyRef.current.slice(0, -1) },
         (accumulated) => {
-          if (firstChunk) {
-            firstChunk = false;
-            updateStatus("Preparing voice...");
-          }
+          if (firstChunk) { firstChunk = false; updateStatus("Preparing voice..."); }
           setTranscriptSource("priya");
           setTranscript(accumulated);
           setTranscriptOpacity(1);
@@ -236,7 +287,6 @@ export default function App() {
       if (fullText) {
         sessionTranscriptRef.current.push(`Priya: ${fullText}`);
         historyRef.current.push({ role: "model", parts: [{ text: fullText }] });
-        setShowActions(true);
         updateStatus("Illuminating...");
         await speakText(fullText);
       }
@@ -246,56 +296,19 @@ export default function App() {
       isProcessingRef.current = false;
       if (isHandsFreeRef.current) {
         updateStatus("I am listening");
-        safeStart();
+        setTimeout(() => startListeningRef.current(), 300);
       } else {
         updateStatus("Ready");
       }
     }
-  }, [safeStop, safeStart, updateStatus, speakText]);
+  }, [stopListening, updateStatus, speakText]);
+
+  // Keep ref current
+  handleVoiceEndRef.current = handleVoiceEnd;
 
   const initRecognition = useCallback(() => {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) return;
-    const rec = new SR();
-    rec.continuous = true;
-    rec.interimResults = true;
-    rec.lang = "en-US";
-
-    rec.onstart = () => {
-      isListeningRef.current = true;
-      isStartingRef.current = false;
-      setIsListening(true);
-      if (!isSpeakingRef.current) updateStatus("Listening to your spirit");
-    };
-
-    rec.onresult = (event: SpeechRecognitionEvent) => {
-      if (isSpeakingRef.current || isProcessingRef.current) return;
-      let t = "";
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        t += event.results[i][0].transcript;
-      }
-      setTranscriptSource("user");
-      setTranscript(t);
-      setTranscriptOpacity(0.5);
-      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-      if (t.trim().length > 0) {
-        silenceTimerRef.current = setTimeout(() => handleVoiceEnd(t), 1800);
-      }
-    };
-
-    rec.onend = () => {
-      isListeningRef.current = false;
-      isStartingRef.current = false;
-      setIsListening(false);
-      setTimeout(() => {
-        if (isHandsFreeRef.current && !isSpeakingRef.current && !isProcessingRef.current) {
-          safeStart();
-        }
-      }, 200);
-    };
-
-    recognitionRef.current = rec;
-  }, [updateStatus, handleVoiceEnd, safeStart]);
+    // No-op: recognition now starts fresh per utterance via startListening
+  }, []);
 
   const startSession = useCallback(async () => {
     unlockAudio(); // must be synchronous in the click handler
@@ -303,22 +316,21 @@ export default function App() {
     setTimeout(() => {
       if (barsContainerRef.current) createBars(barsContainerRef.current);
     }, 50);
-    initRecognition();
     const greeting =
       "I have been waiting for you. Before we talk about biology — how does your body feel today, and where does your spirit sit within it?";
     displaySpeech(greeting);
     historyRef.current.push({ role: "model", parts: [{ text: greeting }] });
     await speakText(greeting);
-    if (isHandsFreeRef.current) safeStart();
-  }, [unlockAudio, initRecognition, displaySpeech, speakText, safeStart]);
+    if (isHandsFreeRef.current) startListening();
+  }, [unlockAudio, displaySpeech, speakText, startListening]);
 
   const toggleHandsFree = useCallback(() => {
     const next = !isHandsFreeRef.current;
     isHandsFreeRef.current = next;
     setIsHandsFree(next);
-    if (!next) { safeStop(); updateStatus("Presence paused"); }
-    else { safeStart(); }
-  }, [safeStop, safeStart, updateStatus]);
+    if (!next) { stopListening(); updateStatus("Presence paused"); }
+    else { startListening(); }
+  }, [stopListening, startListening, updateStatus]);
 
   const handleTextSubmit = useCallback(async () => {
     const text = textInput.trim();
