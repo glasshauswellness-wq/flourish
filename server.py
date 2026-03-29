@@ -566,21 +566,28 @@ class FlourishHandler(http.server.SimpleHTTPRequestHandler):
             text = data.get("text", "").strip()
             voice = data.get("voice", "sage")
 
-            openai_key = os.environ.get("OPENAI_API_KEY")
-            if openai_key:
+            el_key = os.environ.get("ELEVENLABS_API_KEY")
+            el_voice_id = "8BpJPuvl8JdEIZ2eC0Rq"
+
+            if el_key and text:
                 import urllib.request as req
                 payload = json.dumps({
-                    "model": "tts-1",
-                    "input": text,
-                    "voice": voice,
-                    "response_format": "mp3"
+                    "text": text,
+                    "model_id": "eleven_turbo_v2_5",
+                    "voice_settings": {
+                        "stability": 0.45,
+                        "similarity_boost": 0.80,
+                        "style": 0.15,
+                        "use_speaker_boost": True
+                    }
                 }).encode()
                 request = req.Request(
-                    "https://api.openai.com/v1/audio/speech",
+                    f"https://api.elevenlabs.io/v1/text-to-speech/{el_voice_id}",
                     data=payload,
                     headers={
-                        "Authorization": f"Bearer {openai_key}",
-                        "Content-Type": "application/json"
+                        "xi-api-key": el_key,
+                        "Content-Type": "application/json",
+                        "Accept": "audio/mpeg"
                     }
                 )
                 with req.urlopen(request) as resp:
@@ -590,10 +597,34 @@ class FlourishHandler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(audio_data)
             else:
-                self.send_response(200)
-                self.send_header("Content-Type", "application/json")
-                self.end_headers()
-                self.wfile.write(json.dumps({"useClientTTS": True, "text": text}).encode())
+                openai_key = os.environ.get("OPENAI_API_KEY")
+                if openai_key:
+                    import urllib.request as req
+                    payload = json.dumps({
+                        "model": "tts-1",
+                        "input": text,
+                        "voice": "sage",
+                        "response_format": "mp3"
+                    }).encode()
+                    request = req.Request(
+                        "https://api.openai.com/v1/audio/speech",
+                        data=payload,
+                        headers={
+                            "Authorization": f"Bearer {openai_key}",
+                            "Content-Type": "application/json"
+                        }
+                    )
+                    with req.urlopen(request) as resp:
+                        audio_data = resp.read()
+                    self.send_response(200)
+                    self.send_header("Content-Type", "audio/mpeg")
+                    self.end_headers()
+                    self.wfile.write(audio_data)
+                else:
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"useClientTTS": True, "text": text}).encode())
         except Exception as e:
             print(f"Voice speak error: {e}")
             self.send_response(500)
