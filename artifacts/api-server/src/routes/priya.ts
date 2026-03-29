@@ -614,50 +614,62 @@ router.post("/speak", async (req, res) => {
     return;
   }
 
-  const apiKey = process.env["ELEVENLABS_API_KEY"];
-  if (!apiKey) {
-    res.status(500).json({ error: "ELEVENLABS_API_KEY not configured" });
-    return;
-  }
-
-  // ElevenLabs voice: Carolyn
-  const VOICE_ID = "8BpJPuvl8JdEIZ2eC0Rq";
-
   try {
-    const elRes = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
-      {
-        method: "POST",
-        headers: {
-          "xi-api-key": apiKey,
-          "Content-Type": "application/json",
-          "Accept": "audio/mpeg",
+    const geminiRes = await callGemini(GEMINI_TTS_URL, {
+      contents: [{ parts: [{ text }] }],
+      generationConfig: {
+        responseModalities: ["AUDIO"],
+        speechConfig: {
+          voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } },
         },
-        body: JSON.stringify({
-          text,
-          model_id: "eleven_turbo_v2_5",
-          voice_settings: {
-            stability: 0.60,
-            similarity_boost: 0.82,
-            style: 0.25,
-            use_speaker_boost: true,
-          },
-        }),
-      }
-    );
+      },
+    });
 
-    if (!elRes.ok) {
-      const errText = await elRes.text();
-      req.log.error({ status: elRes.status, body: errText }, "ElevenLabs TTS error");
-      res.status(502).json({ error: "ElevenLabs TTS error" });
+    if (!geminiRes.ok) {
+      const errText = await geminiRes.text();
+      req.log.error({ status: geminiRes.status, body: errText }, "Gemini TTS error");
+      res.status(502).json({ error: "Gemini TTS error" });
       return;
     }
 
-    const audioBuffer = await elRes.arrayBuffer();
-    const base64Audio = Buffer.from(audioBuffer).toString("base64");
-    res.json({ audio: base64Audio, format: "mp3" });
+    const data = (await geminiRes.json()) as {
+      candidates?: Array<{
+        content?: { parts?: Array<{ inlineData?: { data?: string } }> };
+      }>;
+    };
+
+    const pcmBase64 = data.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data ?? "";
+    if (!pcmBase64) {
+      res.status(502).json({ error: "No audio data from Gemini" });
+      return;
+    }
+
+    // Wrap raw PCM (24kHz, 16-bit, mono) in a WAV header so AudioContext can decode it
+    const pcm = Buffer.from(pcmBase64, "base64");
+    const sampleRate = 24000;
+    const channels = 1;
+    const bitsPerSample = 16;
+    const byteRate = sampleRate * channels * (bitsPerSample / 8);
+    const blockAlign = channels * (bitsPerSample / 8);
+    const header = Buffer.alloc(44);
+    header.write("RIFF", 0);
+    header.writeUInt32LE(36 + pcm.length, 4);
+    header.write("WAVE", 8);
+    header.write("fmt ", 12);
+    header.writeUInt32LE(16, 16);
+    header.writeUInt16LE(1, 20);        // PCM format
+    header.writeUInt16LE(channels, 22);
+    header.writeUInt32LE(sampleRate, 24);
+    header.writeUInt32LE(byteRate, 28);
+    header.writeUInt16LE(blockAlign, 32);
+    header.writeUInt16LE(bitsPerSample, 34);
+    header.write("data", 36);
+    header.writeUInt32LE(pcm.length, 40);
+
+    const wav = Buffer.concat([header, pcm]);
+    res.json({ audio: wav.toString("base64"), format: "wav" });
   } catch (err) {
-    req.log.error({ err }, "Error calling ElevenLabs TTS");
+    req.log.error({ err }, "Error calling Gemini TTS");
     res.status(500).json({ error: "Internal server error" });
   }
 });
