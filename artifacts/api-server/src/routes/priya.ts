@@ -445,9 +445,6 @@ One observation. One question. Never two questions in the
 same message. Rhythm and warmth carry more than volume.
 `;
 
-const GEMINI_CHAT_STREAM_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent";
-
 async function callGemini(url: string, body: object): Promise<Response> {
   const apiKey = process.env["GEMINI_API_KEY"];
   if (!apiKey) throw new Error("GEMINI_API_KEY not configured");
@@ -458,11 +455,33 @@ async function callGemini(url: string, body: object): Promise<Response> {
   });
 }
 
+type GeminiTurn = { role: string; parts: Array<{ text: string }> };
+
+function toAnthropicMessages(
+  history: GeminiTurn[],
+  prompt: string
+): Array<{ role: "user" | "assistant"; content: string }> {
+  const msgs: Array<{ role: "user" | "assistant"; content: string }> = [];
+  for (const turn of history) {
+    const role = turn.role === "model" ? "assistant" : "user";
+    const content = turn.parts.map((p) => p.text).join("");
+    if (content) msgs.push({ role, content });
+  }
+  msgs.push({ role: "user", content: prompt });
+  return msgs;
+}
+
+function getAnthropicClient() {
+  const apiKey = process.env["ANTHROPIC_API_KEY"];
+  if (!apiKey) throw new Error("ANTHROPIC_API_KEY not configured");
+  return { apiKey };
+}
+
 router.post("/chat/stream", async (req, res) => {
   const { prompt, systemInstruction, history } = req.body as {
     prompt: string;
     systemInstruction?: string;
-    history?: Array<{ role: string; parts: Array<{ text: string }> }>;
+    history?: GeminiTurn[];
   };
 
   if (!prompt) {
@@ -477,34 +496,35 @@ router.post("/chat/stream", async (req, res) => {
   res.flushHeaders();
 
   try {
-    const contents = [...(history || []), { role: "user", parts: [{ text: prompt }] }];
-    const apiKey = process.env["GEMINI_API_KEY"];
-    if (!apiKey) throw new Error("GEMINI_API_KEY not configured");
+    const { apiKey } = getAnthropicClient();
+    const messages = toAnthropicMessages(history || [], prompt);
 
-    const geminiRes = await fetch(
-      `${GEMINI_CHAT_STREAM_URL}?alt=sse&key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents,
-          systemInstruction: {
-            parts: [{ text: systemInstruction || SYSTEM_PROMPT }],
-          },
-        }),
-      }
-    );
+    const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5",
+        max_tokens: 512,
+        system: systemInstruction || SYSTEM_PROMPT,
+        messages,
+        stream: true,
+      }),
+    });
 
-    if (!geminiRes.ok || !geminiRes.body) {
-      const errText = await geminiRes.text();
-      req.log.error({ status: geminiRes.status, body: errText }, "Gemini stream error");
-      res.write(`event: error\ndata: ${JSON.stringify({ error: "Gemini API error" })}\n\n`);
+    if (!anthropicRes.ok || !anthropicRes.body) {
+      const errText = await anthropicRes.text();
+      req.log.error({ status: anthropicRes.status, body: errText }, "Anthropic stream error");
+      res.write(`event: error\ndata: ${JSON.stringify({ error: "Anthropic API error" })}\n\n`);
       res.end();
       return;
     }
 
     const decoder = new TextDecoder();
-    const reader = geminiRes.body.getReader();
+    const reader = anthropicRes.body.getReader();
     let buf = "";
 
     while (true) {
@@ -518,12 +538,12 @@ router.post("/chat/stream", async (req, res) => {
         const raw = line.slice(6).trim();
         if (!raw || raw === "[DONE]") continue;
         try {
-          const chunk = JSON.parse(raw) as {
-            candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+          const event = JSON.parse(raw) as {
+            type: string;
+            delta?: { type: string; text?: string };
           };
-          const delta = chunk.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-          if (delta) {
-            res.write(`data: ${JSON.stringify({ delta })}\n\n`);
+          if (event.type === "content_block_delta" && event.delta?.text) {
+            res.write(`data: ${JSON.stringify({ delta: event.delta.text })}\n\n`);
           }
         } catch {}
       }
@@ -532,7 +552,7 @@ router.post("/chat/stream", async (req, res) => {
     res.write("data: [DONE]\n\n");
     res.end();
   } catch (err) {
-    req.log.error({ err }, "Error streaming Gemini chat");
+    req.log.error({ err }, "Error streaming Anthropic chat");
     res.write(`event: error\ndata: ${JSON.stringify({ error: "Internal server error" })}\n\n`);
     res.end();
   }
@@ -542,7 +562,7 @@ router.post("/chat", async (req, res) => {
   const { prompt, systemInstruction, history } = req.body as {
     prompt: string;
     systemInstruction?: string;
-    history?: Array<{ role: string; parts: Array<{ text: string }> }>;
+    history?: GeminiTurn[];
   };
 
   if (!prompt) {
@@ -551,28 +571,38 @@ router.post("/chat", async (req, res) => {
   }
 
   try {
-    const contents = [...(history || []), { role: "user", parts: [{ text: prompt }] }];
-    const geminiRes = await callGemini(GEMINI_CHAT_URL, {
-      contents,
-      systemInstruction: {
-        parts: [{ text: systemInstruction || SYSTEM_PROMPT }],
+    const { apiKey } = getAnthropicClient();
+    const messages = toAnthropicMessages(history || [], prompt);
+
+    const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
       },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5",
+        max_tokens: 512,
+        system: systemInstruction || SYSTEM_PROMPT,
+        messages,
+      }),
     });
 
-    if (!geminiRes.ok) {
-      const errText = await geminiRes.text();
-      req.log.error({ status: geminiRes.status, body: errText }, "Gemini chat error");
-      res.status(502).json({ error: "Gemini API error" });
+    if (!anthropicRes.ok) {
+      const errText = await anthropicRes.text();
+      req.log.error({ status: anthropicRes.status, body: errText }, "Anthropic chat error");
+      res.status(502).json({ error: "Anthropic API error" });
       return;
     }
 
-    const data = (await geminiRes.json()) as {
-      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+    const data = (await anthropicRes.json()) as {
+      content?: Array<{ type: string; text?: string }>;
     };
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+    const text = data.content?.find((b) => b.type === "text")?.text ?? "";
     res.json({ text });
   } catch (err) {
-    req.log.error({ err }, "Error calling Gemini chat");
+    req.log.error({ err }, "Error calling Anthropic chat");
     res.status(500).json({ error: "Internal server error" });
   }
 });
