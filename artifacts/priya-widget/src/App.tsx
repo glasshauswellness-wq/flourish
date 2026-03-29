@@ -89,6 +89,7 @@ export default function App() {
   const [status, setStatus] = useState("Attuning to presence");
   const [transcript, setTranscript] = useState("");
   const [transcriptOpacity, setTranscriptOpacity] = useState(0);
+  const [transcriptSource, setTranscriptSource] = useState<"user" | "priya">("priya");
   const [isListening, setIsListening] = useState(false);
   const [isHandsFree, setIsHandsFree] = useState(true);
   const [voiceActive, setVoiceActive] = useState(false);
@@ -116,6 +117,7 @@ export default function App() {
   const displaySpeech = useCallback((text: string) => {
     setTranscriptOpacity(0);
     setTimeout(() => {
+      setTranscriptSource("priya");
       setTranscript(text);
       setTranscriptOpacity(1);
     }, 400);
@@ -219,6 +221,7 @@ export default function App() {
       for (let i = event.resultIndex; i < event.results.length; i++) {
         t += event.results[i][0].transcript;
       }
+      setTranscriptSource("user");
       setTranscript(t);
       setTranscriptOpacity(0.5);
       if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
@@ -390,10 +393,10 @@ export default function App() {
 
               <div className="transcript-area">
                 <p
-                  className="transcript-text serif"
+                  className={`transcript-text serif${transcriptSource === "user" ? " transcript-user" : ""}`}
                   style={{ opacity: transcriptOpacity, transition: "opacity 0.7s ease" }}
                 >
-                  {transcript}
+                  {transcriptSource === "user" ? `\u201c${transcript}\u201d` : transcript}
                 </p>
               </div>
 

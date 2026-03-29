@@ -343,6 +343,11 @@
   line-height: 1.7;
 }
 
+.transcript-user {
+  color: #b19cd9;
+  font-size: 1.05rem;
+}
+
 /* Action bar */
 .action-bar {
   display: flex;
