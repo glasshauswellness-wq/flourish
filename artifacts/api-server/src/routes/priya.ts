@@ -1,11 +1,12 @@
 import { Router, type IRouter } from "express";
+import Anthropic from "@anthropic-ai/sdk";
 
 const router: IRouter = Router();
 
-const GEMINI_CHAT_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 const GEMINI_TTS_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent";
+
+const anthropic = new Anthropic({ apiKey: process.env["ANTHROPIC_API_KEY"] });
 
 const SYSTEM_PROMPT = `================================================================
 PRIYA — PRE-CHAT AGENT INSTRUCTIONS
@@ -451,30 +452,43 @@ One observation. One question. Never two questions in the
 same message. Rhythm and warmth carry more than volume.
 `;
 
-async function callGemini(url: string, body: object): Promise<Response> {
-  const apiKey = process.env["GEMINI_API_KEY"];
-  if (!apiKey) throw new Error("GEMINI_API_KEY not configured");
-  const sep = url.includes("?") ? "&" : "?";
-  return fetch(`${url}${sep}key=${apiKey}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-}
-
+// Gemini history format used by the frontend; "model" role = assistant
 type GeminiTurn = { role: string; parts: Array<{ text: string }> };
 
-function buildGeminiChatBody(
+// Convert Gemini-style history to Anthropic MessageParam array.
+// Anthropic requires alternating user/assistant turns starting with user.
+// The Priya session history may start with a model (greeting) turn, so we
+// prepend a synthetic user message in that case.
+function historyToAnthropic(
+  history: GeminiTurn[]
+): Array<{ role: "user" | "assistant"; content: string }> {
+  const msgs: Array<{ role: "user" | "assistant"; content: string }> = [];
+  if (history.length > 0 && history[0].role === "model") {
+    msgs.push({ role: "user", content: "[Session begin]" });
+  }
+  for (const turn of history) {
+    msgs.push({
+      role: turn.role === "model" ? "assistant" : "user",
+      content: turn.parts.map((p) => p.text).join(""),
+    });
+  }
+  return msgs;
+}
+
+async function callClaude(
   prompt: string,
   history: GeminiTurn[],
-  systemInstruction?: string
-) {
-  const contents: GeminiTurn[] = [...(history || []), { role: "user", parts: [{ text: prompt }] }];
-  return {
-    contents,
-    systemInstruction: { parts: [{ text: systemInstruction || SYSTEM_PROMPT }] },
-    generationConfig: { maxOutputTokens: 512, temperature: 1.0 },
-  };
+  system?: string
+): Promise<string> {
+  const messages = historyToAnthropic(history);
+  messages.push({ role: "user", content: prompt });
+  const response = await anthropic.messages.create({
+    model: "claude-sonnet-4-5",
+    max_tokens: 512,
+    system: system || SYSTEM_PROMPT,
+    messages,
+  });
+  return response.content[0]?.type === "text" ? response.content[0].text : "";
 }
 
 router.post("/chat/stream", async (req, res) => {
@@ -496,29 +510,7 @@ router.post("/chat/stream", async (req, res) => {
   res.flushHeaders();
 
   try {
-    const geminiRes = await callGemini(
-      GEMINI_CHAT_URL,
-      buildGeminiChatBody(prompt, history || [], systemInstruction)
-    );
-
-    if (!geminiRes.ok) {
-      const errText = await geminiRes.text();
-      req.log.error({ status: geminiRes.status, body: errText }, "Gemini stream error");
-      // Extract retry delay from Gemini 429 responses so the client can show it
-      let retryAfter = 0;
-      if (geminiRes.status === 429) {
-        const match = errText.match(/"retryDelay"\s*:\s*"(\d+)s"/);
-        if (match) retryAfter = parseInt(match[1], 10);
-      }
-      res.write(`event: error\ndata: ${JSON.stringify({ error: "Gemini API error", status: geminiRes.status, retryAfter })}\n\n`);
-      res.end();
-      return;
-    }
-
-    const data = (await geminiRes.json()) as {
-      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-    };
-    const fullText = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+    const fullText = await callClaude(prompt, history || [], systemInstruction);
 
     // Word-by-word streaming so the frontend typing effect works
     const words = fullText.split(/(\s+)/);
@@ -532,7 +524,7 @@ router.post("/chat/stream", async (req, res) => {
     res.write("data: [DONE]\n\n");
     res.end();
   } catch (err) {
-    req.log.error({ err }, "Error streaming Gemini chat");
+    req.log.error({ err }, "Error streaming Claude chat");
     res.write(`event: error\ndata: ${JSON.stringify({ error: "Internal server error" })}\n\n`);
     res.end();
   }
@@ -551,25 +543,10 @@ router.post("/chat", async (req, res) => {
   }
 
   try {
-    const geminiRes = await callGemini(
-      GEMINI_CHAT_URL,
-      buildGeminiChatBody(prompt, history || [], systemInstruction)
-    );
-
-    if (!geminiRes.ok) {
-      const errText = await geminiRes.text();
-      req.log.error({ status: geminiRes.status, body: errText }, "Gemini chat error");
-      res.status(502).json({ error: "Gemini API error" });
-      return;
-    }
-
-    const data = (await geminiRes.json()) as {
-      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-    };
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+    const text = await callClaude(prompt, history || [], systemInstruction);
     res.json({ text });
   } catch (err) {
-    req.log.error({ err }, "Error calling Gemini chat");
+    req.log.error({ err }, "Error calling Claude chat");
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -632,7 +609,7 @@ router.post("/speak", async (req, res) => {
 router.post("/ritual", async (req, res) => {
   const { context } = req.body as { context: string };
   const prompt = `Based on our conversation: "${context}", generate a 3-step 'Sovereignty Ritual'.
-Return only a JSON object with exactly these fields:
+Return ONLY a raw JSON object with exactly these fields, no markdown, no explanation:
 {
   "botanical": "A specific herb or scent with ancestral context",
   "movement": "A gentle somatic movement",
@@ -640,24 +617,8 @@ Return only a JSON object with exactly these fields:
 }`;
 
   try {
-    const geminiRes = await callGemini(GEMINI_CHAT_URL, {
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      systemInstruction: {
-        parts: [{ text: "You are the Oracle generating a sacred ritual. Return only valid JSON." }],
-      },
-      generationConfig: { responseMimeType: "application/json" },
-    });
-
-    if (!geminiRes.ok) {
-      res.status(502).json({ error: "Gemini API error" });
-      return;
-    }
-
-    const data = (await geminiRes.json()) as {
-      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-    };
-    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "{}";
-    const ritual = JSON.parse(raw);
+    const raw = await callClaude(prompt, [], "You are the Oracle generating a sacred ritual. Return only valid JSON with no markdown fences.");
+    const ritual = JSON.parse(raw.replace(/^```json\n?|```$/g, "").trim());
     res.json(ritual);
   } catch (err) {
     req.log.error({ err }, "Error generating ritual");
@@ -670,27 +631,12 @@ router.post("/passport", async (req, res) => {
   const prompt = `Summarize this session for the user's Digital Wellness Passport.
 Conversation: "${context}"
 Identify current Signals (from the 34 menopausal signals) and the Emotional Landscape.
-Return JSON with: { "signals": ["signal1", "signal2"], "emotionalLandscape": "...", "affirmation": "..." }`;
+Return ONLY a raw JSON object, no markdown, no explanation:
+{ "signals": ["signal1", "signal2"], "emotionalLandscape": "...", "affirmation": "..." }`;
 
   try {
-    const geminiRes = await callGemini(GEMINI_CHAT_URL, {
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      systemInstruction: {
-        parts: [{ text: "You are the Scribe of the Sovereign Circle. Return only valid JSON." }],
-      },
-      generationConfig: { responseMimeType: "application/json" },
-    });
-
-    if (!geminiRes.ok) {
-      res.status(502).json({ error: "Gemini API error" });
-      return;
-    }
-
-    const data = (await geminiRes.json()) as {
-      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-    };
-    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "{}";
-    const passport = JSON.parse(raw);
+    const raw = await callClaude(prompt, [], "You are the Scribe of the Sovereign Circle. Return only valid JSON with no markdown fences.");
+    const passport = JSON.parse(raw.replace(/^```json\n?|```$/g, "").trim());
     res.json(passport);
   } catch (err) {
     req.log.error({ err }, "Error generating passport entry");
