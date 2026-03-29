@@ -48,6 +48,36 @@ Every package extends `tsconfig.base.json` which sets `composite: true`. The roo
 - `pnpm run build` — runs `typecheck` first, then recursively runs `build` in all packages that define it
 - `pnpm run typecheck` — runs `tsc --build --emitDeclarationOnly` using project references
 
+## Artifacts
+
+### `artifacts/priya-widget` (`@workspace/priya-widget`)
+
+React + Vite embeddable widget for Priya — AI voice assistant for The Sovereign Circle.
+
+- Preview path: `/priya-widget/`
+- Self-contained widget designed to be embedded via `<iframe>` in any site
+- Voice recognition via Web Speech API (browser-native, no library needed)
+- AI responses and TTS routed through the api-server (`/api/priya/*`) using `GEMINI_API_KEY`
+
+**Backend routes (artifacts/api-server/src/routes/priya.ts):**
+- `POST /api/priya/chat` — Gemini text generation
+- `POST /api/priya/speak` — Gemini TTS (returns base64 PCM audio)
+- `POST /api/priya/ritual` — Generate a 3-step Sovereignty Ritual
+- `POST /api/priya/passport` — Generate a Digital Wellness Passport entry
+
+**To embed in another Replit site:**
+```html
+<iframe
+  src="https://<your-replit-domain>/priya-widget/"
+  width="480"
+  height="720"
+  frameborder="0"
+  allow="microphone"
+  style="border-radius: 24px; overflow: hidden;"
+></iframe>
+```
+Note: The `allow="microphone"` attribute is required for voice input to work.
+
 ## Packages
 
 ### `artifacts/api-server` (`@workspace/api-server`)
