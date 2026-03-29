@@ -4,14 +4,9 @@ const lotusImg = import.meta.env.BASE_URL + "lotus-flower.png";
 import priyaImg from "@assets/3AE65435-F171-41EB-9DD9-0EE7625AC3CF_1774744679511.jpeg";
 
 const BASE_URL = import.meta.env.BASE_URL.replace(/\/$/, "");
+void BASE_URL;
 
 type AppState = "entrance" | "active";
-
-interface Ritual {
-  botanical: string;
-  movement: string;
-  mantra: string;
-}
 
 interface PassportEntry {
   signals: string[];
@@ -20,7 +15,6 @@ interface PassportEntry {
 }
 
 type ModalContent =
-  | { kind: "ritual"; data: Ritual }
   | { kind: "passport"; data: PassportEntry }
   | null;
 
@@ -71,7 +65,6 @@ async function apiStream(
   return full;
 }
 
-
 function createBars(container: HTMLDivElement) {
   container.innerHTML = "";
   const barCount = 60;
@@ -94,10 +87,38 @@ function createBars(container: HTMLDivElement) {
 function animateBars(bars: NodeListOf<Element>, active: boolean) {
   bars.forEach((bar) => {
     const el = bar as HTMLElement;
-    el.style.height = active
-      ? `${8 + Math.random() * 30}px`
-      : "8px";
+    el.style.height = active ? `${8 + Math.random() * 30}px` : "8px";
   });
+}
+
+function browserSpeak(text: string): Promise<void> {
+  return new Promise<void>((resolve) => {
+    if (!window.speechSynthesis) { resolve(); return; }
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    const voices = window.speechSynthesis.getVoices();
+    const voice =
+      voices.find(v => v.name === "Google US English") ||
+      voices.find(v => v.lang.startsWith("en") && v.name.toLowerCase().includes("female")) ||
+      voices.find(v => v.lang.startsWith("en"));
+    if (voice) utt.voice = voice;
+    utt.rate = 0.88;
+    utt.pitch = 1.05;
+    utt.onend = () => resolve();
+    utt.onerror = () => resolve();
+    window.speechSynthesis.speak(utt);
+  });
+}
+
+function downloadTranscript(lines: string[]) {
+  const text = lines.join("\n\n");
+  const blob = new Blob([text], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `priya-conversation-${new Date().toISOString().slice(0, 10)}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 export default function App() {
@@ -113,17 +134,18 @@ export default function App() {
   const [showActions, setShowActions] = useState(false);
   const [textInput, setTextInput] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [passportSynced, setPassportSynced] = useState(false);
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const isProcessingRef = useRef(false);
   const isSpeakingRef = useRef(false);
   const isListeningRef = useRef(false);
   const isHandsFreeRef = useRef(true);
+  const isTypingRef = useRef(false); // true while text input is focused
   const sessionTranscriptRef = useRef<string[]>([]);
   const barsContainerRef = useRef<HTMLDivElement | null>(null);
   const animFrameRef = useRef<number | null>(null);
   const historyRef = useRef<Array<{ role: string; parts: Array<{ text: string }> }>>([]);
-  // Refs to allow mutual calls without circular deps
   const startListeningRef = useRef<() => void>(() => {});
   const handleVoiceEndRef = useRef<(text: string) => Promise<void>>(async () => {});
 
@@ -159,9 +181,7 @@ export default function App() {
   const audioCtxRef = useRef<AudioContext | null>(null);
 
   const unlockAudio = useCallback(() => {
-    if (!audioCtxRef.current) {
-      audioCtxRef.current = new AudioContext();
-    }
+    if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
     if (audioCtxRef.current.state === "suspended") {
       audioCtxRef.current.resume().catch(() => {});
     }
@@ -171,16 +191,16 @@ export default function App() {
     stopListening();
     isSpeakingRef.current = true;
     setVoiceActive(true);
+
+    let usedElevenLabs = false;
     try {
       const data = await apiPost<{ audio: string; format: string }>("/speak", { text });
       const binary = atob(data.audio);
       const bytes = new Uint8Array(binary.length);
       for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-
       if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
       const ctx = audioCtxRef.current;
       if (ctx.state === "suspended") await ctx.resume();
-
       const audioBuffer = await ctx.decodeAudioData(bytes.buffer);
       await new Promise<void>((resolve) => {
         const source = ctx.createBufferSource();
@@ -189,25 +209,31 @@ export default function App() {
         source.onended = () => resolve();
         source.start(0);
       });
-    } catch (err) {
-      console.error("speakText error:", err);
+      usedElevenLabs = true;
+    } catch {
+      // ElevenLabs unavailable (quota, network) — fall back to browser speech
     }
+
+    if (!usedElevenLabs) {
+      await browserSpeak(text);
+    }
+
     isSpeakingRef.current = false;
     setVoiceActive(false);
   }, [stopListening]);
 
-  // startListening: creates a fresh recognition instance each time (continuous=false)
-  // Chrome handles single-utterance sessions reliably; reuse causes rapid flicker
+  // Fresh recognition instance per utterance — continuous=false is reliable in Chrome
   const startListening = useCallback(() => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) return;
-    if (!isHandsFreeRef.current || isSpeakingRef.current || isProcessingRef.current) return;
+    if (!isHandsFreeRef.current) return;
+    if (isSpeakingRef.current || isProcessingRef.current || isTypingRef.current) return;
     if (isListeningRef.current) return;
 
-    stopListening(); // abort any stale instance
+    stopListening();
 
     const rec = new SR();
-    rec.continuous = false;   // single utterance — reliable in Chrome
+    rec.continuous = false;
     rec.interimResults = true;
     rec.lang = "en-US";
     rec.maxAlternatives = 1;
@@ -239,7 +265,13 @@ export default function App() {
       const text = capturedText.trim();
       if (text && !isSpeakingRef.current && !isProcessingRef.current) {
         handleVoiceEndRef.current(text);
-      } else if (isHandsFreeRef.current && !isSpeakingRef.current && !isProcessingRef.current) {
+      } else if (
+        isHandsFreeRef.current &&
+        !isSpeakingRef.current &&
+        !isProcessingRef.current &&
+        !isTypingRef.current
+      ) {
+        // Restart — covers no-speech timeouts, page visibility changes, interruptions
         setTimeout(() => startListeningRef.current(), 400);
       }
     };
@@ -249,9 +281,16 @@ export default function App() {
       isListeningRef.current = false;
       setIsListening(false);
       const err = event.error;
-      if ((err === "no-speech" || err === "audio-capture") &&
-          isHandsFreeRef.current && !isSpeakingRef.current && !isProcessingRef.current) {
-        setTimeout(() => startListeningRef.current(), 400);
+      // Don't retry if the user explicitly denied microphone
+      const permanent = err === "not-allowed" || err === "service-not-allowed";
+      if (
+        !permanent &&
+        isHandsFreeRef.current &&
+        !isSpeakingRef.current &&
+        !isProcessingRef.current &&
+        !isTypingRef.current
+      ) {
+        setTimeout(() => startListeningRef.current(), 600);
       }
     };
 
@@ -262,14 +301,13 @@ export default function App() {
     }
   }, [stopListening, updateStatus]);
 
-  // Keep refs current so callbacks always call the latest version
   startListeningRef.current = startListening;
 
   const handleVoiceEnd = useCallback(async (text: string) => {
     if (isProcessingRef.current) return;
     isProcessingRef.current = true;
     stopListening();
-    sessionTranscriptRef.current.push(`User: ${text}`);
+    sessionTranscriptRef.current.push(`You: ${text}`);
     historyRef.current.push({ role: "user", parts: [{ text }] });
     updateStatus("Reflecting...");
     try {
@@ -287,14 +325,15 @@ export default function App() {
       if (fullText) {
         sessionTranscriptRef.current.push(`Priya: ${fullText}`);
         historyRef.current.push({ role: "model", parts: [{ text: fullText }] });
+        setShowActions(true);
         updateStatus("Illuminating...");
         await speakText(fullText);
       }
     } catch {
-      updateStatus("A ripple in the silence...");
+      updateStatus("A ripple in the silence…");
     } finally {
       isProcessingRef.current = false;
-      if (isHandsFreeRef.current) {
+      if (isHandsFreeRef.current && !isTypingRef.current) {
         updateStatus("I am listening");
         setTimeout(() => startListeningRef.current(), 300);
       } else {
@@ -303,21 +342,16 @@ export default function App() {
     }
   }, [stopListening, updateStatus, speakText]);
 
-  // Keep ref current
   handleVoiceEndRef.current = handleVoiceEnd;
 
-  const initRecognition = useCallback(() => {
-    // No-op: recognition now starts fresh per utterance via startListening
-  }, []);
-
   const startSession = useCallback(async () => {
-    unlockAudio(); // must be synchronous in the click handler
+    unlockAudio();
     setAppState("active");
     setTimeout(() => {
       if (barsContainerRef.current) createBars(barsContainerRef.current);
     }, 50);
     const greeting =
-      "I have been waiting for you. Before we talk about biology — how does your body feel today, and where does your spirit sit within it?";
+      "I have been waiting for you. How does your body feel today, and where does your spirit sit within it?";
     displaySpeech(greeting);
     historyRef.current.push({ role: "model", parts: [{ text: greeting }] });
     await speakText(greeting);
@@ -328,14 +362,34 @@ export default function App() {
     const next = !isHandsFreeRef.current;
     isHandsFreeRef.current = next;
     setIsHandsFree(next);
-    if (!next) { stopListening(); updateStatus("Presence paused"); }
-    else { startListening(); }
-  }, [stopListening, startListening, updateStatus]);
+    if (!next) {
+      stopListening();
+      updateStatus("Presence paused");
+    } else {
+      updateStatus("I am listening");
+      setTimeout(() => startListeningRef.current(), 200);
+    }
+  }, [stopListening, updateStatus]);
+
+  // Text input focus/blur — pause mic while typing, resume after submit
+  const handleInputFocus = useCallback(() => {
+    isTypingRef.current = true;
+    stopListening();
+  }, [stopListening]);
+
+  const handleInputBlur = useCallback(() => {
+    isTypingRef.current = false;
+    // Resume listening if hands-free and not busy
+    if (isHandsFreeRef.current && !isSpeakingRef.current && !isProcessingRef.current) {
+      setTimeout(() => startListeningRef.current(), 300);
+    }
+  }, []);
 
   const handleTextSubmit = useCallback(async () => {
     const text = textInput.trim();
     if (!text || isProcessingRef.current) return;
-    unlockAudio(); // synchronous in click handler
+    unlockAudio();
+    isTypingRef.current = false;
     setTextInput("");
     setIsProcessing(true);
     setTranscriptSource("user");
@@ -345,29 +399,18 @@ export default function App() {
     setIsProcessing(false);
   }, [textInput, unlockAudio, handleVoiceEnd]);
 
-  const generateRitual = useCallback(async () => {
-    updateStatus("Weaving your ritual...");
-    try {
-      const context = sessionTranscriptRef.current.join(" | ");
-      const ritual = await apiPost<Ritual>("/ritual", { context });
-      setModal({ kind: "ritual", data: ritual });
-    } catch {
-      updateStatus("The oracle is silent...");
-    } finally {
-      updateStatus(isHandsFreeRef.current ? "Listening" : "Ready");
-    }
-  }, [updateStatus]);
-
   const syncToPassport = useCallback(async () => {
-    updateStatus("Scribing your journey...");
+    if (sessionTranscriptRef.current.length === 0) return;
+    updateStatus("Scribing your journey…");
     try {
       const context = sessionTranscriptRef.current.join(" | ");
       const entry = await apiPost<PassportEntry>("/passport", { context });
       setModal({ kind: "passport", data: entry });
+      setPassportSynced(true);
     } catch {
-      updateStatus("The scroll is empty...");
+      updateStatus("The scroll is empty…");
     } finally {
-      updateStatus(isHandsFreeRef.current ? "Listening" : "Ready");
+      updateStatus(isHandsFreeRef.current ? "I am listening" : "Ready");
     }
   }, [updateStatus]);
 
@@ -387,6 +430,24 @@ export default function App() {
     };
   }, [appState, isListening, voiceActive]);
 
+  // Resume listening when page becomes visible again (e.g. user returns from notification)
+  useEffect(() => {
+    const onVisible = () => {
+      if (
+        document.visibilityState === "visible" &&
+        isHandsFreeRef.current &&
+        !isSpeakingRef.current &&
+        !isProcessingRef.current &&
+        !isTypingRef.current &&
+        appState === "active"
+      ) {
+        setTimeout(() => startListeningRef.current(), 500);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [appState]);
+
   return (
     <div className="priya-root">
       <div className="aura-animation" />
@@ -399,17 +460,6 @@ export default function App() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-
-            {modal.kind === "ritual" && (
-              <div className="modal-content">
-                <h3 className="modal-title gold">Ritual of Sovereignty</h3>
-                <div className="modal-body">
-                  <p><strong>🌿 Botanical:</strong> {modal.data.botanical}</p>
-                  <p><strong>🌊 Movement:</strong> {modal.data.movement}</p>
-                  <p><strong>✨ Mantra:</strong> <em>"{modal.data.mantra}"</em></p>
-                </div>
-              </div>
-            )}
 
             {modal.kind === "passport" && (
               <div className="modal-content">
@@ -424,6 +474,13 @@ export default function App() {
                   <p><strong>Affirmation:</strong></p>
                   <p className="affirmation"><em>"{modal.data.affirmation}"</em></p>
                 </div>
+                <button
+                  className="btn-sparkle"
+                  style={{ marginTop: "1rem", width: "100%" }}
+                  onClick={() => downloadTranscript(sessionTranscriptRef.current)}
+                >
+                  ⬇ Download Conversation
+                </button>
               </div>
             )}
           </div>
@@ -481,6 +538,21 @@ export default function App() {
                 </p>
               </div>
 
+              {showActions && (
+                <div className="action-bar fade-up">
+                  <button className="btn-sparkle" onClick={syncToPassport}>
+                    ✨ Sync to Passport
+                  </button>
+                  {passportSynced && (
+                    <button
+                      className="btn-sparkle"
+                      onClick={() => downloadTranscript(sessionTranscriptRef.current)}
+                    >
+                      ⬇ Download Conversation
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </main>
@@ -494,12 +566,14 @@ export default function App() {
                 placeholder="Type your message to Priya…"
                 value={textInput}
                 onChange={e => setTextInput(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && handleTextSubmit()}
+                onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); handleTextSubmit(); } }}
+                onFocus={handleInputFocus}
+                onBlur={handleInputBlur}
                 disabled={isProcessing}
               />
               <button
                 className="text-send-btn"
-                onClick={handleTextSubmit}
+                onClick={() => { unlockAudio(); handleTextSubmit(); }}
                 disabled={!textInput.trim() || isProcessing}
                 aria-label="Send"
               >
@@ -515,7 +589,6 @@ export default function App() {
             </button>
           </footer>
         )}
-
       </div>
     </div>
   );
