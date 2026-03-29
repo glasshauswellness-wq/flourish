@@ -92,13 +92,54 @@ function animateBars(bars: NodeListOf<Element>, active: boolean) {
 }
 
 
-function downloadTranscript(lines: string[]) {
-  const text = lines.join("\n\n");
-  const blob = new Blob([text], { type: "text/plain" });
+function downloadTranscript(lines: string[], passport?: PassportEntry | null) {
+  const date = new Date().toLocaleDateString("en-US", {
+    weekday: "long", year: "numeric", month: "long", day: "numeric"
+  });
+  const divider = "═".repeat(52);
+  const thin = "─".repeat(52);
+
+  const sections: string[] = [];
+
+  sections.push(
+    divider,
+    "  PRIYA — THE SOVEREIGN CIRCLE",
+    `  Session: ${date}`,
+    divider
+  );
+
+  if (passport) {
+    sections.push(
+      "",
+      `── SOUL PASSPORT ${"─".repeat(35)}`,
+      "",
+      "SIGNALS",
+      ...passport.signals.map(s => `  • ${s}`),
+      "",
+      "EMOTIONAL LANDSCAPE",
+      `  ${passport.emotionalLandscape}`,
+      "",
+      "AFFIRMATION",
+      `  "${passport.affirmation}"`,
+      ""
+    );
+  }
+
+  sections.push(
+    `── CONVERSATION TRANSCRIPT ${"─".repeat(25)}`,
+    "",
+    ...lines,
+    "",
+    thin,
+    "  Glasshaus Wellness, Inc. — Powered by Equilibrium",
+    thin
+  );
+
+  const blob = new Blob([sections.join("\n")], { type: "text/plain" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `priya-conversation-${new Date().toISOString().slice(0, 10)}.txt`;
+  a.download = `priya-session-${new Date().toISOString().slice(0, 10)}.txt`;
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -122,6 +163,7 @@ export default function App() {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const interruptRecRef = useRef<SpeechRecognition | null>(null);
   const currentAudioSourceRef = useRef<AudioBufferSourceNode | null>(null);
+  const passportDataRef = useRef<PassportEntry | null>(null);
   const isProcessingRef = useRef(false);
   const isSpeakingRef = useRef(false);
   const isListeningRef = useRef(false);
@@ -423,6 +465,7 @@ export default function App() {
     try {
       const context = sessionTranscriptRef.current.join(" | ");
       const entry = await apiPost<PassportEntry>("/passport", { context });
+      passportDataRef.current = entry;
       setModal({ kind: "passport", data: entry });
       setPassportSynced(true);
     } catch {
@@ -495,7 +538,7 @@ export default function App() {
                 <button
                   className="btn-sparkle"
                   style={{ marginTop: "1rem", width: "100%" }}
-                  onClick={() => downloadTranscript(sessionTranscriptRef.current)}
+                  onClick={() => downloadTranscript(sessionTranscriptRef.current, passportDataRef.current)}
                 >
                   ⬇ Download Conversation
                 </button>
@@ -606,7 +649,7 @@ export default function App() {
                     </button>
                     <button
                       className="dropdown-item"
-                      onClick={() => downloadTranscript(sessionTranscriptRef.current)}
+                      onClick={() => downloadTranscript(sessionTranscriptRef.current, passportDataRef.current)}
                       disabled={sessionTranscriptRef.current.length === 0}
                     >
                       ⬇ Download Conversation
