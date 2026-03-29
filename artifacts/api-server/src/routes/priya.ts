@@ -445,6 +445,9 @@ One observation. One question. Never two questions in the
 same message. Rhythm and warmth carry more than volume.
 `;
 
+const GEMINI_CHAT_STREAM_URL =
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent";
+
 async function callGemini(url: string, body: object): Promise<Response> {
   const apiKey = process.env["GEMINI_API_KEY"];
   if (!apiKey) throw new Error("GEMINI_API_KEY not configured");
@@ -454,6 +457,86 @@ async function callGemini(url: string, body: object): Promise<Response> {
     body: JSON.stringify(body),
   });
 }
+
+router.post("/chat/stream", async (req, res) => {
+  const { prompt, systemInstruction, history } = req.body as {
+    prompt: string;
+    systemInstruction?: string;
+    history?: Array<{ role: string; parts: Array<{ text: string }> }>;
+  };
+
+  if (!prompt) {
+    res.status(400).json({ error: "prompt is required" });
+    return;
+  }
+
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no");
+  res.flushHeaders();
+
+  try {
+    const contents = [...(history || []), { role: "user", parts: [{ text: prompt }] }];
+    const apiKey = process.env["GEMINI_API_KEY"];
+    if (!apiKey) throw new Error("GEMINI_API_KEY not configured");
+
+    const geminiRes = await fetch(
+      `${GEMINI_CHAT_STREAM_URL}?alt=sse&key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents,
+          systemInstruction: {
+            parts: [{ text: systemInstruction || SYSTEM_PROMPT }],
+          },
+        }),
+      }
+    );
+
+    if (!geminiRes.ok || !geminiRes.body) {
+      const errText = await geminiRes.text();
+      req.log.error({ status: geminiRes.status, body: errText }, "Gemini stream error");
+      res.write(`event: error\ndata: ${JSON.stringify({ error: "Gemini API error" })}\n\n`);
+      res.end();
+      return;
+    }
+
+    const decoder = new TextDecoder();
+    const reader = geminiRes.body.getReader();
+    let buf = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split("\n");
+      buf = lines.pop() ?? "";
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        const raw = line.slice(6).trim();
+        if (!raw || raw === "[DONE]") continue;
+        try {
+          const chunk = JSON.parse(raw) as {
+            candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+          };
+          const delta = chunk.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+          if (delta) {
+            res.write(`data: ${JSON.stringify({ delta })}\n\n`);
+          }
+        } catch {}
+      }
+    }
+
+    res.write("data: [DONE]\n\n");
+    res.end();
+  } catch (err) {
+    req.log.error({ err }, "Error streaming Gemini chat");
+    res.write(`event: error\ndata: ${JSON.stringify({ error: "Internal server error" })}\n\n`);
+    res.end();
+  }
+});
 
 router.post("/chat", async (req, res) => {
   const { prompt, systemInstruction, history } = req.body as {

@@ -34,6 +34,43 @@ async function apiPost<T>(path: string, body: object): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+async function apiStream(
+  path: string,
+  body: object,
+  onDelta: (text: string) => void
+): Promise<string> {
+  const res = await fetch(`/api/priya${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok || !res.body) throw new Error(`API error ${res.status}`);
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = "";
+  let full = "";
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    const lines = buf.split("\n");
+    buf = lines.pop() ?? "";
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue;
+      const raw = line.slice(6).trim();
+      if (!raw || raw === "[DONE]") continue;
+      try {
+        const chunk = JSON.parse(raw) as { delta?: string };
+        if (chunk.delta) {
+          full += chunk.delta;
+          onDelta(full);
+        }
+      } catch {}
+    }
+  }
+  return full;
+}
+
 function pcmToWav(base64Pcm: string, sampleRate: number): Blob {
   const pcmBuffer = Uint8Array.from(atob(base64Pcm), (c) =>
     c.charCodeAt(0)
@@ -116,13 +153,19 @@ export default function App() {
 
   const updateStatus = useCallback((text: string) => setStatus(text), []);
 
-  const displaySpeech = useCallback((text: string) => {
-    setTranscriptOpacity(0);
-    setTimeout(() => {
+  const displaySpeech = useCallback((text: string, instant?: boolean) => {
+    if (instant) {
       setTranscriptSource("priya");
       setTranscript(text);
       setTranscriptOpacity(1);
-    }, 400);
+    } else {
+      setTranscriptOpacity(0);
+      setTimeout(() => {
+        setTranscriptSource("priya");
+        setTranscript(text);
+        setTranscriptOpacity(1);
+      }, 400);
+    }
   }, []);
 
   const safeStop = useCallback(() => {
@@ -183,16 +226,25 @@ export default function App() {
     historyRef.current.push(userTurn);
     updateStatus("Reflecting...");
     try {
-      const data = await apiPost<{ text: string }>("/chat", {
-        prompt: text,
-        history: historyRef.current.slice(0, -1),
-      });
-      if (data.text) {
-        sessionTranscriptRef.current.push(`Priya: ${data.text}`);
-        historyRef.current.push({ role: "model", parts: [{ text: data.text }] });
+      let firstChunk = true;
+      const fullText = await apiStream(
+        "/chat/stream",
+        { prompt: text, history: historyRef.current.slice(0, -1) },
+        (accumulated) => {
+          if (firstChunk) {
+            firstChunk = false;
+            updateStatus("Illuminating...");
+          }
+          setTranscriptSource("priya");
+          setTranscript(accumulated);
+          setTranscriptOpacity(1);
+        }
+      );
+      if (fullText) {
+        sessionTranscriptRef.current.push(`Priya: ${fullText}`);
+        historyRef.current.push({ role: "model", parts: [{ text: fullText }] });
         setShowActions(true);
-        displaySpeech(data.text);
-        await speakText(data.text);
+        await speakText(fullText);
       }
     } catch {
       updateStatus("A ripple in the silence...");
@@ -200,7 +252,7 @@ export default function App() {
       isProcessingRef.current = false;
       if (isHandsFreeRef.current) safeStart();
     }
-  }, [safeStop, safeStart, updateStatus, displaySpeech, speakText]);
+  }, [safeStop, safeStart, updateStatus, speakText]);
 
   const initRecognition = useCallback(() => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
