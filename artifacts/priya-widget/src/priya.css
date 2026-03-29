@@ -96,7 +96,6 @@
   background-repeat: no-repeat;
   background-position: center center;
   opacity: 1;
-  mix-blend-mode: multiply;
   z-index: 5;
   pointer-events: none;
 }
@@ -119,17 +118,44 @@
 
 .portrait-area {
   position: relative;
-  width: 400px;
-  height: 440px;
+  width: 360px;
+  height: 360px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .entrance-lotus {
-  width: 440px;
-  height: 480px;
+  width: 400px;
+  height: 400px;
   opacity: 1;
+}
+
+/* Flourish badge */
+.flourish-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #ffffff;
+  border-radius: 0.75rem;
+  padding: 0.6rem 2rem 0.5rem;
+  gap: 0.1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.flourish-name {
+  font-family: 'Bodoni Moda', serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  color: #1a4d2e;
+}
+
+.flourish-sub {
+  font-size: 0.6rem;
+  letter-spacing: 0.05em;
+  color: #4a7c59;
+  font-family: 'Inter', sans-serif;
 }
 
 .portrait-ring {

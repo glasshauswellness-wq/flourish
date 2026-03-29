@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import "./priya.css";
-const lotusImg = import.meta.env.BASE_URL + "lotus.png";
+const lotusImg = import.meta.env.BASE_URL + "lotus-transparent.png";
 import priyaImg from "@assets/3AE65435-F171-41EB-9DD9-0EE7625AC3CF_1774744679511.jpeg";
 
 const BASE_URL = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -364,6 +364,11 @@ export default function App() {
                   <div className="portrait-img entrance-portrait" style={{ backgroundImage: `url(${priyaImg})` }} />
                 </div>
               </div>
+              <div className="flourish-badge">
+                <span className="flourish-name">FLOURISH</span>
+                <span className="flourish-sub">Powered by Glasshaus</span>
+              </div>
+
               <div className="entrance-text">
                 <h2 className="welcome-quote serif">"I have been waiting for you."</h2>
                 <button className="enter-btn" onClick={startSession}>
