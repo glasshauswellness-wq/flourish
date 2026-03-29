@@ -614,33 +614,50 @@ router.post("/speak", async (req, res) => {
     return;
   }
 
-  try {
-    const geminiRes = await callGemini(GEMINI_TTS_URL, {
-      contents: [{ parts: [{ text }] }],
-      generationConfig: {
-        responseModalities: ["AUDIO"],
-        speechConfig: {
-          voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } },
-        },
-      },
-    });
+  const apiKey = process.env["ELEVENLABS_API_KEY"];
+  if (!apiKey) {
+    res.status(500).json({ error: "ELEVENLABS_API_KEY not configured" });
+    return;
+  }
 
-    if (!geminiRes.ok) {
-      const errText = await geminiRes.text();
-      req.log.error({ status: geminiRes.status, body: errText }, "Gemini TTS error");
-      res.status(502).json({ error: "Gemini TTS error" });
+  // ElevenLabs voice: Sarah — warm, calm, authoritative
+  const VOICE_ID = "EXAVITQu4vr4xnSDxMaL";
+
+  try {
+    const elRes = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
+      {
+        method: "POST",
+        headers: {
+          "xi-api-key": apiKey,
+          "Content-Type": "application/json",
+          "Accept": "audio/mpeg",
+        },
+        body: JSON.stringify({
+          text,
+          model_id: "eleven_turbo_v2_5",
+          voice_settings: {
+            stability: 0.52,
+            similarity_boost: 0.78,
+            style: 0.15,
+            use_speaker_boost: true,
+          },
+        }),
+      }
+    );
+
+    if (!elRes.ok) {
+      const errText = await elRes.text();
+      req.log.error({ status: elRes.status, body: errText }, "ElevenLabs TTS error");
+      res.status(502).json({ error: "ElevenLabs TTS error" });
       return;
     }
 
-    const data = (await geminiRes.json()) as {
-      candidates?: Array<{
-        content?: { parts?: Array<{ inlineData?: { data?: string } }> };
-      }>;
-    };
-    const pcmData = data.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data ?? "";
-    res.json({ pcmData });
+    const audioBuffer = await elRes.arrayBuffer();
+    const base64Audio = Buffer.from(audioBuffer).toString("base64");
+    res.json({ audio: base64Audio, format: "mp3" });
   } catch (err) {
-    req.log.error({ err }, "Error calling Gemini TTS");
+    req.log.error({ err }, "Error calling ElevenLabs TTS");
     res.status(500).json({ error: "Internal server error" });
   }
 });

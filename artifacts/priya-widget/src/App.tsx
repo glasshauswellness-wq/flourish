@@ -169,32 +169,29 @@ export default function App() {
     }
   }, []);
 
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
   const speakText = useCallback(async (text: string) => {
     isSpeakingRef.current = true;
     setVoiceActive(true);
     safeStop();
-    await new Promise<void>((resolve) => {
-      if (!window.speechSynthesis) { resolve(); return; }
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      const pickVoice = () => {
-        const voices = window.speechSynthesis.getVoices();
-        const voice =
-          voices.find(v => v.name === "Google US English") ||
-          voices.find(v => v.lang.startsWith("en") && v.name.toLowerCase().includes("female")) ||
-          voices.find(v => v.lang.startsWith("en") && v.name.toLowerCase().includes("zira")) ||
-          voices.find(v => v.lang.startsWith("en") && v.name.toLowerCase().includes("samantha")) ||
-          voices.find(v => v.lang.startsWith("en"));
-        if (voice) utterance.voice = voice;
-      };
-      pickVoice();
-      utterance.rate = 0.88;
-      utterance.pitch = 1.05;
-      utterance.volume = 1.0;
-      utterance.onend = () => resolve();
-      utterance.onerror = () => resolve();
-      window.speechSynthesis.speak(utterance);
-    });
+    try {
+      const data = await apiPost<{ audio: string; format: string }>("/speak", { text });
+      const binary = atob(data.audio);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const blob = new Blob([bytes], { type: "audio/mpeg" });
+      const url = URL.createObjectURL(blob);
+      if (!audioRef.current) audioRef.current = new Audio();
+      audioRef.current.src = url;
+      await new Promise<void>((resolve) => {
+        if (!audioRef.current) { resolve(); return; }
+        audioRef.current.onended = () => { URL.revokeObjectURL(url); resolve(); };
+        audioRef.current.onerror = () => { URL.revokeObjectURL(url); resolve(); };
+        audioRef.current.play().catch(() => resolve());
+      });
+    } catch {
+    }
     isSpeakingRef.current = false;
     setVoiceActive(false);
   }, [safeStop]);
