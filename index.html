@@ -2926,7 +2926,7 @@ if (grid) {
       const text = sel ? sel.toString().trim() : '';
       if (text.length > 8) {
         selectedText = text;
-        placePill(e.clientX + window.scrollX, e.clientY + window.scrollY);
+        placePill(e.clientX, e.clientY);
       } else {
         hidePill();
         expandedBox.style.display = 'none';
