@@ -120,6 +120,8 @@ export default function App() {
   const [passportSynced, setPassportSynced] = useState(false);
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const interruptRecRef = useRef<SpeechRecognition | null>(null);
+  const currentAudioSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const isProcessingRef = useRef(false);
   const isSpeakingRef = useRef(false);
   const isListeningRef = useRef(false);
@@ -185,17 +187,58 @@ export default function App() {
       const audioBuffer = await ctx.decodeAudioData(bytes.buffer);
       await new Promise<void>((resolve) => {
         const source = ctx.createBufferSource();
+        currentAudioSourceRef.current = source;
         source.buffer = audioBuffer;
         source.connect(ctx.destination);
-        source.onended = () => resolve();
+        source.onended = () => {
+          currentAudioSourceRef.current = null;
+          resolve();
+        };
         source.start(0);
+
+        // Interrupt watcher — listens for the user's voice during Priya's speech.
+        // Delayed 700ms so echo cancellation stabilises and Priya's own voice
+        // doesn't trigger the interrupt watcher through the mic.
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SR && isHandsFreeRef.current && !isTypingRef.current) {
+          setTimeout(() => {
+            if (!isSpeakingRef.current) return; // audio already ended naturally
+            const interruptRec = new SR();
+            interruptRec.continuous = false;
+            interruptRec.interimResults = true;
+            interruptRec.lang = "en-US";
+
+            interruptRec.onresult = () => {
+              // User spoke — cut Priya's audio immediately
+              isSpeakingRef.current = false;
+              setVoiceActive(false);
+              updateStatus("I'm listening…");
+              try { source.stop(); } catch {}
+              try { interruptRec.abort(); } catch {}
+              interruptRecRef.current = null;
+            };
+
+            interruptRec.onerror = () => { interruptRecRef.current = null; };
+            interruptRec.onend = () => { interruptRecRef.current = null; };
+
+            interruptRecRef.current = interruptRec;
+            try { interruptRec.start(); } catch {}
+          }, 700);
+        }
       });
     } catch {
       // Voice unavailable — conversation continues silently
     }
+
+    // Stop interrupt watcher if audio ended naturally (no interrupt)
+    if (interruptRecRef.current) {
+      try { interruptRecRef.current.abort(); } catch {}
+      interruptRecRef.current = null;
+    }
+
     isSpeakingRef.current = false;
     setVoiceActive(false);
-  }, [stopListening]);
+  }, [stopListening, updateStatus]);
 
   // Fresh recognition instance per utterance — continuous=false is reliable in Chrome
   const startListening = useCallback(() => {
