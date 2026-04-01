@@ -37,7 +37,8 @@
   /* ── NAV ── */
   nav {
     position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    padding: 0.4rem 3rem;
+    padding: 0 3rem;
+    min-height: 80px;
     display: flex; align-items: center; justify-content: space-between;
     background: rgba(178, 150, 220, 0.92);
     backdrop-filter: blur(12px);
@@ -55,7 +56,7 @@
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;
-    opacity: 0.12;
+    opacity: 0.25;
     pointer-events: none;
     z-index: 0;
   }
@@ -1614,8 +1615,12 @@ nav {
 
 <!-- NAV -->
 <nav style="background:rgba(178,150,220,0.95) !important; overflow:hidden;">
-  <a href="#" class="nav-logo" style="position:relative;z-index:2;display:block;">
-    <img src="assets/images/flourish-logo-nobg.png" alt="Flourish" style="height:60px;width:auto;display:block;position:relative;z-index:2;transform:translateY(40%);filter:drop-shadow(0 4px 14px rgba(60,30,90,0.35));" />
+  <a href="#" class="nav-logo" style="position:relative;z-index:2;display:flex;align-items:center;gap:0.75rem;text-decoration:none;align-self:stretch;">
+    <img src="assets/images/flourish-logo-nobg.png" alt="Flourish" style="height:100%;max-height:80px;width:auto;object-fit:contain;display:block;filter:drop-shadow(0 2px 8px rgba(60,30,90,0.3));" />
+    <div style="display:flex;flex-direction:column;justify-content:center;line-height:1.2;">
+      <span style="font-family:'Cinzel',serif;font-size:1.25rem;letter-spacing:0.14em;color:#2d1a4a;font-weight:600;">Flourish</span>
+      <span style="font-family:'DM Sans',sans-serif;font-size:0.62rem;letter-spacing:0.2em;color:#4a3570;font-weight:300;text-transform:none;">a Glasshaus Pod</span>
+    </div>
   </a>
   <ul class="nav-links" style="position:relative;z-index:2;">
     <li><a href="#priya">Your Guide</a></li>
