@@ -42,6 +42,22 @@
     background: rgba(178, 150, 220, 0.92);
     backdrop-filter: blur(12px);
     border-bottom: 0.5px solid rgba(107,79,168,0.25);
+    overflow: hidden;
+  }
+  nav::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 500%;
+    height: 500%;
+    background-image: url('assets/images/flourish-logo-nobg.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0.12;
+    pointer-events: none;
+    z-index: 0;
   }
 
   .nav-logo {
@@ -1597,11 +1613,11 @@ nav {
 <body>
 
 <!-- NAV -->
-<nav style="background:rgba(178,150,220,0.95) !important; overflow:visible;">
-  <a href="#" class="nav-logo" style="position:relative;z-index:500;display:block;">
-    <img src="assets/images/flourish-logo-nobg.png" alt="Flourish" style="height:60px;width:auto;display:block;position:relative;z-index:500;transform:translateY(40%);filter:drop-shadow(0 4px 14px rgba(60,30,90,0.35));" />
+<nav style="background:rgba(178,150,220,0.95) !important; overflow:hidden;">
+  <a href="#" class="nav-logo" style="position:relative;z-index:2;display:block;">
+    <img src="assets/images/flourish-logo-nobg.png" alt="Flourish" style="height:60px;width:auto;display:block;position:relative;z-index:2;transform:translateY(40%);filter:drop-shadow(0 4px 14px rgba(60,30,90,0.35));" />
   </a>
-  <ul class="nav-links">
+  <ul class="nav-links" style="position:relative;z-index:2;">
     <li><a href="#priya">Your Guide</a></li>
     <li><a href="/shop.html">The Journey</a></li>
     <li><a href="/shop.html">Shop</a></li>
