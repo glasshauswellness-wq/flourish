@@ -80,6 +80,10 @@
     display: flex; gap: 2.5rem; list-style: none;
   }
 
+  .nav-mobile-cta {
+    display: none;
+  }
+
   .nav-links a {
     font-size: 0.8rem; letter-spacing: 0.08em;
     text-transform: uppercase; text-decoration: none;
@@ -951,8 +955,9 @@
 
   /* ── RESPONSIVE ── */
   @media (max-width: 900px) {
-    nav { padding: 1rem 1.5rem; }
+    nav { padding: 0 1.5rem; min-height: 70px; }
     .nav-links { display: none; }
+    .nav-mobile-cta { display: inline-flex; align-items: center; }
     .hero { grid-template-columns: 1fr; min-height: auto; }
     .hero-left { padding: 7rem 2rem 2rem; }
     .hero-right { padding: 2rem; justify-content: center; }
@@ -1597,8 +1602,9 @@ nav {
 .btn-outline-light:hover { border-color:var(--violet-soft); color:var(--violet-soft); }
 
 @media(max-width:860px){
-  nav { padding:1rem 1.5rem; }
+  nav { padding:0 1.5rem; min-height:70px; }
   .nav-links { display:none; }
+  .nav-mobile-cta { display:inline-flex; align-items:center; }
   .hub-hero { padding:6rem 1.5rem 3rem; }
   .tier-filter { padding:1.5rem 1.5rem 0; }
   .tools-section { padding:3rem 1.5rem; }
@@ -1630,6 +1636,7 @@ nav {
     <li><a href="/shop.html">Shop</a></li>
     <li><a href="#priya" class="nav-cta">Begin Your Journey</a></li>
   </ul>
+  <a href="#priya" class="nav-mobile-cta nav-cta" style="position:relative;z-index:2;">Begin</a>
 </nav>
 
 <!-- HERO -->

@@ -67,6 +67,10 @@
   .nav-links {
     display: flex; gap: 2.5rem; list-style: none; align-items: center;
   }
+
+  .nav-mobile-cta {
+    display: none;
+  }
   .nav-links a {
     font-size: 0.8rem; letter-spacing: 0.08em;
     text-transform: uppercase; text-decoration: none;
@@ -639,6 +643,8 @@
   /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
     nav { padding: 0 1.5rem; min-height: 70px; }
+    .nav-links { display: none; }
+    .nav-mobile-cta { display: inline-flex; align-items: center; }
     .bundles-grid { grid-template-columns: 1fr; }
     .weeks-grid { grid-template-columns: 1fr 1fr; }
     .edu-grid { grid-template-columns: 1fr; }
@@ -669,6 +675,7 @@
     <li><a href="shop.html">Shop</a></li>
     <li><a href="index.html#priya" class="nav-cta">Begin Your Journey</a></li>
   </ul>
+  <a href="index.html#priya" class="nav-mobile-cta nav-cta" style="position:relative;z-index:2;">Begin</a>
 </nav>
 
 <!-- ── HERO ── -->
