@@ -100,6 +100,21 @@
 
   .nav-cta:hover { background: var(--violet) !important; color: white !important; }
 
+  /* ── HAMBURGER ── */
+  .hamburger {
+    display: none; flex-direction: column; gap: 5px;
+    cursor: pointer; background: none; border: none;
+    padding: 8px; z-index: 10; position: relative;
+  }
+  .hamburger span {
+    display: block; width: 24px; height: 2px;
+    background: #2d1a4a; border-radius: 2px;
+    transition: all 0.25s ease;
+  }
+  .nav-open .hamburger span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .nav-open .hamburger span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  .nav-open .hamburger span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
   /* ── HERO ── */
   .hero {
     min-height: 100vh;
@@ -951,8 +966,20 @@
 
   /* ── RESPONSIVE ── */
   @media (max-width: 900px) {
-    nav { padding: 1rem 1.5rem; }
-    .nav-links { display: none; }
+    nav { padding: 0 1.5rem; }
+    .hamburger { display: flex; }
+    .nav-links {
+      display: none; position: absolute; top: 100%; left: 0; right: 0;
+      flex-direction: column; align-items: flex-start;
+      background: rgba(178,150,220,0.98); backdrop-filter: blur(16px);
+      padding: 0.75rem 2rem 1.25rem; gap: 0;
+      border-bottom: 0.5px solid rgba(107,79,168,0.3);
+      box-shadow: 0 8px 24px rgba(40,20,70,0.2);
+    }
+    .nav-open .nav-links { display: flex; }
+    .nav-links li { width: 100%; padding: 0.65rem 0; border-bottom: 0.5px solid rgba(107,79,168,0.15); }
+    .nav-links li:last-child { border-bottom: none; }
+    .nav-cta { margin-top: 0.25rem; }
     .hero { grid-template-columns: 1fr; min-height: auto; }
     .hero-left { padding: 7rem 2rem 2rem; }
     .hero-right { padding: 2rem; justify-content: center; }
@@ -1597,8 +1624,19 @@ nav {
 .btn-outline-light:hover { border-color:var(--violet-soft); color:var(--violet-soft); }
 
 @media(max-width:860px){
-  nav { padding:1rem 1.5rem; }
-  .nav-links { display:none; }
+  nav { padding:0 1.5rem; }
+  .hamburger { display:flex; }
+  .nav-links {
+    display:none; position:absolute; top:100%; left:0; right:0;
+    flex-direction:column; align-items:flex-start;
+    background:rgba(178,150,220,0.98); backdrop-filter:blur(16px);
+    padding:0.75rem 2rem 1.25rem; gap:0;
+    border-bottom:0.5px solid rgba(107,79,168,0.3);
+    box-shadow:0 8px 24px rgba(40,20,70,0.2);
+  }
+  .nav-open .nav-links { display:flex; }
+  .nav-links li { width:100%; padding:0.65rem 0; border-bottom:0.5px solid rgba(107,79,168,0.15); }
+  .nav-links li:last-child { border-bottom:none; }
   .hub-hero { padding:6rem 1.5rem 3rem; }
   .tier-filter { padding:1.5rem 1.5rem 0; }
   .tools-section { padding:3rem 1.5rem; }
@@ -1630,7 +1668,15 @@ nav {
     <li><a href="/shop.html">Shop</a></li>
     <li><a href="#priya" class="nav-cta">Begin Your Journey</a></li>
   </ul>
+  <button class="hamburger" aria-label="Open menu" onclick="this.closest('nav').classList.toggle('nav-open')">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+<script>
+  document.querySelectorAll('.nav-links a').forEach(function(a){
+    a.addEventListener('click', function(){ document.querySelector('nav').classList.remove('nav-open'); });
+  });
+</script>
 
 <!-- HERO -->
 <section class="hero">
