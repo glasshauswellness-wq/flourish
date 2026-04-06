@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GlassHaus Resource & Practitioner Directory — Powered by Equilibrium</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&family=Cinzel:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--v:#9B7FD4;--vd:#6B4FA8;--vs:#C4ADEA;--vp:#F0EBF9;--e:#3D2C1E;--em:#7A5C42;--g:#C9A84C;--gl:#F0D98A;--cr:#FAF7F2;--cd:#EFE8DC;--nt:#1A1225;--border-radius-md:8px;--border-radius-lg:12px}
+.lg-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:6px 15px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;border-radius:20px;cursor:pointer;transition:all 0.2s;background:linear-gradient(135deg,rgba(200,230,0,0.22) 0%,rgba(232,255,77,0.12) 50%,rgba(200,230,0,0.28) 100%);border:0.5px solid rgba(200,230,0,0.55);color:#4A5A00;box-shadow:inset 0 1px 0 rgba(255,255,255,0.35),0 1px 8px rgba(200,230,0,0.2);backdrop-filter:blur(8px);letter-spacing:0.01em;text-shadow:0 1px 0 rgba(255,255,255,0.5)}
+.lg-btn:hover{background:linear-gradient(135deg,rgba(200,230,0,0.35) 0%,rgba(232,255,77,0.22) 50%,rgba(200,230,0,0.4) 100%);border-color:rgba(200,230,0,0.8);transform:translateY(-1px);color:#3A4800}
+.lg-btn.p{background:linear-gradient(135deg,rgba(200,230,0,0.45) 0%,rgba(232,255,77,0.28) 40%,rgba(138,175,0,0.5) 100%);border-color:rgba(200,230,0,0.9);color:#2E3A00}
+.lg-btn.p:hover{background:linear-gradient(135deg,rgba(200,230,0,0.6) 0%,rgba(232,255,77,0.38) 40%,rgba(138,175,0,0.65) 100%)}
+.lg-btn.dl{background:linear-gradient(135deg,rgba(107,79,168,0.85),rgba(155,127,212,0.9));border-color:rgba(155,127,212,0.8);color:#fff;font-weight:500}
+.lg-btn.dl:hover{background:linear-gradient(135deg,rgba(107,79,168,1),rgba(155,127,212,1));transform:translateY(-1px)}
+.lg-select{padding:6px 28px 6px 12px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;border-radius:20px;cursor:pointer;background:linear-gradient(135deg,rgba(200,230,0,0.22) 0%,rgba(232,255,77,0.1) 50%,rgba(200,230,0,0.28) 100%);border:0.5px solid rgba(200,230,0,0.55);color:#3A4800;appearance:none;-webkit-appearance:none;background-image:linear-gradient(135deg,rgba(200,230,0,0.22) 0%,rgba(232,255,77,0.1) 50%,rgba(200,230,0,0.28) 100%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%234A5A00' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 12px center,right 10px center;min-width:200px}
+.lg-select option{background:#FAF7F2;color:#3D2C1E}
+.admin-star-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;border-radius:20px;cursor:pointer;transition:all 0.2s;background:rgba(226,75,74,0.1);border:0.5px solid rgba(226,75,74,0.4);color:#A32D2D}
+.admin-star-btn:hover{background:rgba(226,75,74,0.18);transform:translateY(-1px)}
+.admin-star{color:#E24B4A;font-size:14px}
+.admin-bar{display:none;margin-top:8px;padding:10px 12px;background:#FCEBEB;border:0.5px solid #F09595;border-radius:var(--border-radius-md);align-items:center;gap:8px;flex-wrap:wrap}
+.admin-bar.open{display:flex}
+.admin-bar-label{font-size:10px;font-weight:500;color:#791F1F;text-transform:uppercase;letter-spacing:0.08em;flex-shrink:0}
+.admin-lock{display:flex;align-items:center;gap:6px;font-size:11px;color:#791F1F;cursor:pointer;padding:4px 10px;border-radius:20px;border:0.5px solid rgba(226,75,74,0.3);background:rgba(255,255,255,0.5);margin-left:auto}
+.admin-lock:hover{background:rgba(226,75,74,0.08)}
+body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--e);margin:0}
+.site-nav{background:var(--nt);padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+.nav-logo{font-family:'Cinzel',serif;font-size:13px;letter-spacing:.15em;color:#FAF7F2;text-decoration:none}
+.nav-logo span{font-family:'DM Sans',sans-serif;font-size:.65rem;font-weight:300;color:rgba(255,255,255,.4);letter-spacing:.2em;display:block;margin-top:1px;text-transform:uppercase}
+.nav-links{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.nav-link{font-size:11px;color:rgba(255,255,255,.55);text-decoration:none;transition:color .15s}
+.nav-link:hover{color:#fff}
+.nav-link.active{color:var(--vs)}
+.priya-cta-nav{padding:5px 14px;font-size:11px;border-radius:20px;background:var(--vd);color:#fff;text-decoration:none;transition:background .2s}
+.priya-cta-nav:hover{background:var(--v)}
+.wrap{max-width:900px;margin:0 auto;background:var(--cr)}
+.dir-header{background:var(--nt);padding:1.25rem 1.5rem}
+.dir-top{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:.75rem}
+.eq-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;background:rgba(155,127,212,0.15);border:0.5px solid rgba(155,127,212,0.35);border-radius:20px;font-size:10px;color:var(--vs);font-weight:500;letter-spacing:0.06em;text-transform:uppercase;flex-shrink:0}
+.eq-badge::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--vs)}
+.dir-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.dir-body{padding:1.25rem}
+.stats-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:1.25rem}
+.sc{background:white;border:0.5px solid var(--cd);border-radius:var(--border-radius-md);padding:10px 12px}
+.sl{font-size:10px;color:var(--em);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:3px}
+.sv{font-size:20px;font-weight:500;color:var(--e)}
+.asset-strip{background:var(--vp);border:0.5px solid var(--vs);border-radius:var(--border-radius-md);padding:10px 12px;margin-bottom:1.25rem;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.as-label{font-size:10px;font-weight:500;color:var(--vd);text-transform:uppercase;letter-spacing:0.08em;flex-shrink:0}
+.as-items{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.as-item{font-size:10px;padding:2px 8px;border-radius:20px;background:white;color:var(--vd);border:0.5px solid var(--vs)}
+
+/* PRIYA GUIDE PANEL */
+.priya-panel{background:var(--nt);border-radius:var(--border-radius-lg);padding:20px;margin-bottom:1.25rem;position:relative;overflow:hidden}
+.priya-panel::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 90% 50%,rgba(155,127,212,0.18),transparent 65%);pointer-events:none}
+.priya-panel-inner{position:relative;z-index:2}
+.pp-eyebrow{font-size:10px;font-weight:500;color:var(--vs);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.pp-eyebrow::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--vs)}
+.pp-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;color:#FAF7F2;margin-bottom:6px;line-height:1.2}
+.pp-title em{font-style:italic;color:var(--vs)}
+.pp-sub{font-size:12px;color:rgba(255,255,255,.5);line-height:1.6;margin-bottom:14px;max-width:52ch}
+.pp-form{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.pp-input{padding:8px 10px;font-size:12px;border-radius:var(--border-radius-md);border:0.5px solid rgba(155,127,212,0.4);background:rgba(155,127,212,0.1);color:#FAF7F2;font-family:'DM Sans',sans-serif}
+.pp-input::placeholder{color:rgba(255,255,255,.35)}
+.pp-input:focus{outline:none;border-color:var(--vs)}
+.pp-input.full{grid-column:1/-1}
+select.pp-input option{background:var(--nt);color:#FAF7F2}
+.pp-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pp-hint{font-size:11px;color:rgba(255,255,255,.35);line-height:1.5}
+.pp-result{margin-top:14px;display:none}
+.pp-result.open{display:block}
+.pp-result-box{background:rgba(155,127,212,0.12);border:0.5px solid rgba(155,127,212,0.35);border-radius:var(--border-radius-md);padding:12px 14px;margin-bottom:10px}
+.pp-result-label{font-size:10px;font-weight:500;color:var(--vs);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px}
+.pp-result-body{font-size:12px;color:rgba(255,255,255,.75);line-height:1.7;white-space:pre-wrap}
+.pp-download-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.pp-download-label{font-size:11px;color:rgba(255,255,255,.45)}
+
+.ai-panel{background:white;border:0.5px solid var(--cd);border-radius:var(--border-radius-lg);padding:14px;margin-bottom:1rem}
+.ai-label{font-size:10px;font-weight:500;color:var(--vd);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.ai-label::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--v)}
+.ai-row{display:flex;gap:8px}
+.ai-in{flex:1;padding:8px 10px;font-size:13px;border-radius:var(--border-radius-md);border:0.5px solid var(--cd);background:var(--cr);color:var(--e);resize:none;font-family:'DM Sans',sans-serif;min-height:38px}
+.ai-in:focus{outline:none;border-color:var(--v)}
+.ai-resp{margin-top:10px;padding:10px 12px;background:var(--vp);border-radius:var(--border-radius-md);border:0.5px solid var(--vs);display:none}
+.ai-resp.open{display:block}
+.ai-rl{font-size:10px;font-weight:500;color:var(--vd);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px}
+.ai-rb{font-size:13px;color:var(--e);line-height:1.7;white-space:pre-wrap}
+.ai-rc{display:flex;flex-direction:column;gap:5px;margin-top:8px}
+.arc{display:flex;align-items:center;gap:8px;padding:7px 10px;background:white;border-radius:var(--border-radius-md);border:0.5px solid var(--cd);cursor:pointer;transition:border-color 0.15s}
+.arc:hover{border-color:var(--v)}
+.arc-n{font-size:12px;font-weight:500;color:var(--e)}
+.arc-r{font-size:11px;color:var(--em)}
+.arc-s{margin-left:auto;font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;flex-shrink:0}
+.arc-s.pass{background:#EAF3DE;color:#1A5C3A}
+.arc-s.int{background:var(--vp);color:var(--vd)}
+.think{display:none;align-items:center;gap:6px;font-size:11px;color:var(--em);margin-top:8px}
+.think.on{display:flex}
+.td{width:4px;height:4px;border-radius:50%;background:var(--v);animation:pulse 1.2s infinite}
+.td:nth-child(2){animation-delay:.2s}.td:nth-child(3){animation-delay:.4s}
+.pp-think{width:4px;height:4px;border-radius:50%;background:var(--vs);animation:pulse 1.2s infinite}
+.pp-think:nth-child(2){animation-delay:.2s}.pp-think:nth-child(3){animation-delay:.4s}
+@keyframes pulse{0%,80%,100%{opacity:.2}40%{opacity:1}}
+.sq-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.sq{font-size:10px;padding:2px 9px;border-radius:20px;border:0.5px solid var(--cd);background:white;color:var(--em);cursor:pointer;transition:all .15s}
+.sq:hover{border-color:var(--v);color:var(--vd)}
+.filter-bar{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
+.fp{padding:3px 11px;font-size:11px;border-radius:20px;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;background:white;border:0.5px solid var(--cd);color:var(--em)}
+.fp:hover{border-color:rgba(200,230,0,0.6);color:#3A4800;background:rgba(200,230,0,0.08)}
+.fp.active{background:linear-gradient(135deg,rgba(200,230,0,0.4) 0%,rgba(232,255,77,0.22) 50%,rgba(200,230,0,0.45) 100%);border-color:rgba(200,230,0,0.85);color:#2E3A00;font-weight:500}
+.fsb{flex:1;min-width:140px;max-width:220px;padding:5px 9px;font-size:12px;border-radius:var(--border-radius-md);border:0.5px solid var(--cd);background:white;color:var(--e)}
+.fsb:focus{outline:none;border-color:var(--v)}
+.cg{display:flex;flex-direction:column;gap:8px}
+.pc{background:white;border:0.5px solid var(--cd);border-radius:var(--border-radius-lg);padding:12px 14px;transition:border-color .15s}
+.pc:hover{border-color:var(--vs)}
+.pc.hl{border-color:var(--v);border-width:1.5px}
+.pc.gh{border-left:3px solid var(--vd);border-radius:0 var(--border-radius-lg) var(--border-radius-lg) 0}
+.pc.asc{border-left:3px solid var(--g);border-radius:0 var(--border-radius-lg) var(--border-radius-lg) 0}
+.pc.vt{opacity:.6;border-left:3px solid #E24B4A;border-radius:0 var(--border-radius-lg) var(--border-radius-lg) 0}
+.pc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.pc-left{display:flex;gap:12px;flex:1;min-width:0}
+.pc-avatar{flex-shrink:0;width:52px;height:52px;border-radius:50%;overflow:hidden;border:1.5px solid var(--vs);background:var(--vp)}
+.pc-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.pc-info{flex:1;min-width:0}
+.pc-name{font-size:14px;font-weight:500;color:var(--e);line-height:1.3}
+.pc-name em{font-style:italic;color:var(--vd);font-size:11px;font-weight:400}
+.pc-role{font-size:11px;color:var(--em);margin-top:2px;line-height:1.4}
+.pc-meta{display:flex;gap:4px;align-items:center;margin-top:5px;flex-wrap:wrap}
+.bdg{font-size:9px;font-weight:500;padding:2px 7px;border-radius:20px;letter-spacing:.04em}
+.bdg.gh{background:var(--vp);color:var(--vd)}.bdg.asc{background:#FFF8E6;color:#7A5000}
+.bdg.com{background:var(--cd);color:var(--em)}.bdg.fl{background:#EBF5F0;color:#1A5C3A}
+.bdg.hf{background:#E6F1FB;color:#0C447C}.bdg.gen{background:var(--cd);color:var(--em)}
+.bdg.nom{background:#FFF8E6;color:#7A5000}.bdg.pend{background:#FFF8E6;color:#7A5000}
+.bdg.vt{background:#FCEBEB;color:#791F1F}.bdg.asset{background:#EAF3DE;color:#1A5C3A}
+.rf-row{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.rf{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:500;padding:2px 7px;border-radius:20px;cursor:pointer;transition:all .15s;border:0.5px solid}
+.rf.coi{background:#FCEBEB;color:#791F1F;border-color:#F09595}.rf.coi:hover{background:#F7C1C1}
+.rf.caut{background:#FFF8E6;color:#7A5000;border-color:#FAC775}.rf.caut:hover{background:#FAC775}
+.rf.asset{background:#EAF3DE;color:#1A5C3A;border-color:#97C459}.rf.asset:hover{background:#C0DD97}
+.pc-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
+.sp{display:flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:12px;font-weight:500;border:0.5px solid}
+.sp.pass{background:#EAF3DE;color:#1A5C3A;border-color:#97C459}
+.sp.fail{background:#FCEBEB;color:#791F1F;border-color:#F09595}
+.sp.int{background:var(--vp);color:var(--vd);border-color:var(--vs)}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dp{background:#639922}.df{background:#E24B4A}.di{background:var(--v)}
+.exp{margin-top:10px;padding-top:10px;border-top:0.5px solid var(--cd);display:none}
+.exp.open{display:block}
+.risk-block{border-radius:var(--border-radius-md);padding:8px 10px;margin-bottom:7px;display:none;font-size:12px;line-height:1.6}
+.risk-block.open{display:block}
+.rb-coi{background:#FCEBEB;border:0.5px solid #F09595;color:#791F1F}
+.rb-caut{background:#FFF8E6;border:0.5px solid #FAC775;color:#7A5000}
+.rb-asset{background:#EAF3DE;border:0.5px solid #97C459;color:#1A5C3A}
+.rb-title{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.dg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-bottom:10px}
+.dr{display:flex;flex-direction:column;gap:2px}
+.dl{font-size:10px;color:var(--em);text-transform:uppercase;letter-spacing:.04em}
+.db-w{display:flex;align-items:center;gap:6px}
+.db{flex:1;height:4px;background:var(--cd);border-radius:3px;overflow:hidden}
+.df2{height:100%;border-radius:3px}
+.df2.low{background:#E24B4A}.df2.mid{background:#EF9F27}.df2.high{background:#639922}
+.dv{font-size:10px;font-weight:500;color:var(--e);min-width:18px;text-align:right}
+.pc-notes{font-size:11px;color:var(--em);line-height:1.6;margin-bottom:8px}
+.pc-detail-btn{padding:3px 9px;font-size:10px;border-radius:20px;cursor:pointer;font-family:'DM Sans',sans-serif;border:0.5px solid var(--cd);background:white;color:var(--e);transition:all .15s}
+.pc-detail-btn:hover{background:var(--cd)}
+.admin-card-row{display:none;gap:5px;flex-wrap:wrap;margin-top:6px;padding-top:6px;border-top:0.5px dashed rgba(226,75,74,0.3)}
+.admin-card-row.open{display:flex}
+.acb{padding:3px 10px;font-size:10px;border-radius:20px;cursor:pointer;font-family:'DM Sans',sans-serif;border:0.5px solid rgba(226,75,74,0.4);background:rgba(226,75,74,0.06);color:#791F1F;transition:all .15s}
+.acb:hover{background:rgba(226,75,74,0.12)}
+.nom-panel{border:1.5px dashed var(--vs);border-radius:var(--border-radius-lg);padding:14px;margin-top:1.5rem;background:white}
+.nom-label{font-size:10px;font-weight:500;color:var(--g);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.nom-label::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--g)}
+.nom-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:8px}
+.ni{padding:7px 9px;font-size:12px;border-radius:var(--border-radius-md);border:0.5px solid var(--cd);background:var(--cr);color:var(--e);font-family:'DM Sans',sans-serif}
+.ni:focus{outline:none;border-color:var(--g)}
+.ni.full{grid-column:1/-1}
+.nom-hint{font-size:11px;color:var(--em);margin-top:4px;line-height:1.5}
+.nom-result{margin-top:10px;display:none}
+.nom-result.open{display:block}
+.nom-sg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:8px}
+.nd{background:var(--cr);border:0.5px solid var(--cd);border-radius:var(--border-radius-md);padding:7px 9px}
+.ndl{font-size:10px;color:var(--em);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+.ndv{font-size:17px;font-weight:500}
+.nc{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:var(--border-radius-md);margin:7px 0;border:0.5px solid}
+.nc.pass{background:#EAF3DE;border-color:#97C459}
+.nc.fail{background:#FCEBEB;border-color:#F09595}
+.nc.pend{background:#FFF8E6;border-color:#FAC775}
+.ncl{font-size:12px;font-weight:500;color:var(--e)}
+.ncv{font-size:22px;font-weight:500}
+.ncv.pass{color:#1A5C3A}.ncv.fail{color:#A32D2D}.ncv.pend{color:#7A5000}
+.lumen{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:#FFF8E6;border:0.5px solid var(--gl);border-radius:20px;font-size:10px;color:#7A5000;font-weight:500;margin:6px 0}
+.nom-acts{display:flex;gap:7px;margin-top:8px;flex-wrap:wrap}
+.tf-trigger-wrap{padding:1.25rem 1.25rem 0;background:var(--cr);text-align:center}
+.tf-trigger{font-size:12px;color:var(--vd);font-weight:500;cursor:pointer;text-decoration:underline;text-underline-offset:2px;background:none;border:none;font-family:'DM Sans',sans-serif;padding:0}
+.tf-trigger:hover{color:var(--v)}
+.tf-lightbox{display:none;padding:1.25rem;background:var(--vp);border-top:0.5px solid var(--vs);border-bottom:0.5px solid var(--vs)}
+.tf-lightbox.open{display:block}
+.tf-inner{max-width:720px;margin:0 auto}
+.tf-t{font-size:11px;font-weight:500;color:var(--vd);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;justify-content:space-between}
+.tf-close{font-size:14px;cursor:pointer;color:var(--vd);background:none;border:none;font-family:'DM Sans',sans-serif}
+.tf-b{font-size:11px;color:var(--em);line-height:1.8}
+.tf-b ul{padding-left:1.1rem;margin-top:6px}
+.tf-b li{font-size:11px;color:var(--em);line-height:1.8}
+.eq-footer{background:var(--nt);padding:.75rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+.ef-left{font-size:10px;color:rgba(255,255,255,.3);line-height:1.6}
+.ef-right{display:flex;align-items:center;gap:6px}
+.ef-eq{font-size:10px;color:var(--vs);font-weight:500;letter-spacing:.06em;text-transform:uppercase}
+.ef-dot{width:4px;height:4px;border-radius:50%;background:var(--vs)}
+.rubric-wrap{margin-top:1.5rem;border:0.5px solid var(--cd);border-radius:var(--border-radius-lg);overflow:hidden;background:white;display:none}
+.rubric-wrap.open{display:block}
+.rwh{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--cd);cursor:pointer}
+.rwt{font-size:12px;font-weight:500;color:var(--e)}
+.rwb{padding:14px;display:none}
+.rwb.open{display:block}
+.wr{display:grid;grid-template-columns:1fr 45px 45px;align-items:center;gap:8px;margin-bottom:7px}
+.wl{font-size:12px;color:var(--e)}
+.wi{padding:4px 7px;font-size:12px;border-radius:var(--border-radius-md);border:0.5px solid var(--cd);background:var(--cr);color:var(--e);text-align:center}
+.wp{font-size:11px;color:var(--em);text-align:right}
+.modal-bg{background:rgba(0,0,0,.5);position:fixed;inset:0;display:none;align-items:flex-start;justify-content:center;padding:2rem;z-index:100;overflow-y:auto}
+.modal-bg.open{display:flex}
+.modal{background:white;border-radius:var(--border-radius-lg);border:0.5px solid var(--cd);padding:16px;width:100%;max-width:540px;margin:auto}
+.mt2{font-size:15px;font-weight:500;color:var(--e);margin-bottom:12px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fg2{display:flex;flex-direction:column;gap:3px}
+.fg2.full{grid-column:1/-1}
+.fl{font-size:10px;color:var(--em);text-transform:uppercase;letter-spacing:.05em}
+.fi{padding:6px 9px;font-size:12px;border-radius:var(--border-radius-md);border:0.5px solid var(--cd);background:var(--cr);color:var(--e);font-family:'DM Sans',sans-serif}
+.fi:focus{outline:none;border-color:var(--v)}
+.rs-wrap{margin:8px 0}
+.rs-t{font-size:10px;font-weight:500;color:var(--em);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px;padding-bottom:5px;border-top:0.5px solid var(--cd);padding-top:8px}
+.sr{display:grid;grid-template-columns:1fr 40px 32px;align-items:center;gap:6px;margin-bottom:6px}
+.comp-r{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--cr);border-radius:var(--border-radius-md);margin:6px 0;border:0.5px solid var(--cd)}
+.risk-ed{margin:8px 0;padding:9px;background:var(--cr);border-radius:var(--border-radius-md);border:0.5px solid var(--cd)}
+.re-t{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--em);margin-bottom:7px}
+.re-r{display:flex;gap:6px;margin-bottom:5px;align-items:flex-start}
+.re-l{font-size:11px;color:var(--em);min-width:85px;padding-top:2px}
+.re-i{flex:1;padding:4px 7px;font-size:11px;border-radius:var(--border-radius-md);border:0.5px solid var(--cd);background:white;color:var(--e);font-family:'DM Sans',sans-serif}
+.fa{display:flex;gap:7px;justify-content:flex-end;margin-top:10px}
+.pw-modal{background:rgba(0,0,0,.6);position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:200}
+.pw-modal.open{display:flex}
+.pw-box{background:white;border-radius:var(--border-radius-lg);border:0.5px solid var(--cd);padding:20px;width:100%;max-width:320px;text-align:center}
+.pw-title{font-size:15px;font-weight:500;color:var(--e);margin-bottom:4px;display:flex;align-items:center;justify-content:center;gap:6px}
+.pw-star{color:#E24B4A;font-size:18px}
+.pw-sub{font-size:11px;color:var(--em);margin-bottom:14px}
+.pw-input{width:100%;padding:8px 12px;font-size:13px;border-radius:var(--border-radius-md);border:0.5px solid var(--cd);background:var(--cr);color:var(--e);text-align:center;letter-spacing:0.1em;font-family:'DM Sans',sans-serif;margin-bottom:10px}
+.pw-input:focus{outline:none;border-color:#E24B4A}
+.pw-error{font-size:11px;color:#A32D2D;margin-bottom:8px;min-height:16px}
+.pw-actions{display:flex;gap:8px;justify-content:center}
+</style>
+</head>
+<body>
+
+<!-- SITE NAV -->
+<nav class="site-nav">
+  <a href="https://flourish.glasshauswellness.com" class="nav-logo">
+    FLOURISH
+    <span>a GlassHaus Pod</span>
+  </a>
+  <div class="nav-links">
+    <a href="https://flourish.glasshauswellness.com" class="nav-link">Home</a>
+    <a href="https://flourish.glasshauswellness.com/shop.html" class="nav-link">Resources</a>
+    <a href="https://flourish.glasshauswellness.com/directory" class="nav-link active">Directory</a>
+    <a href="https://priya-site-widget.replit.app/priya-widget/" class="priya-cta-nav">Talk to Priya</a>
+  </div>
+</nav>
+
+<div class="wrap">
+<div class="dir-header">
+  <div class="dir-top">
+    <div>
+      <div style="font-family:'Cinzel',serif;font-size:16px;font-weight:500;color:#FAF7F2;letter-spacing:.12em">GLASSHAUS</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:300;font-style:italic;color:rgba(255,255,255,.65);margin-top:1px">Resource &amp; Practitioner Directory</div>
+    </div>
+    <div class="eq-badge">Powered by Equilibrium</div>
+  </div>
+  <div class="dir-controls">
+    <select class="lg-select" id="podSelect" onchange="setPod(this.value)">
+      <option value="all">All Pods — Full Directory</option>
+      <option value="flourish">Flourish — Menopause &amp; Hormonal Sovereignty</option>
+      <option value="general">GlassHaus — General Wellness</option>
+      <option value="hfhc">HFHC / CPC — Family &amp; Co-Parenting</option>
+      <option value="ascend">Ascend — Professional Women of Color</option>
+    </select>
+    <button class="admin-star-btn" onclick="openPwModal()" id="adminStarBtn"><span class="admin-star">★</span> Admin</button>
+  </div>
+</div>
+
+<div class="dir-body">
+
+  <div id="adminBar" class="admin-bar">
+    <span class="admin-bar-label">★ Admin</span>
+    <button class="lg-btn p" onclick="openAddModal()">+ Add practitioner</button>
+    <button class="lg-btn" onclick="toggleRubric()">Rubric settings</button>
+    <button class="lg-btn" onclick="exportCSV()">Export CSV</button>
+    <span class="admin-lock" onclick="lockAdmin()">Lock ✕</span>
+  </div>
+
+  <div class="stats-row" id="statsRow"></div>
+  <div class="asset-strip"><div class="as-label">Active assets</div><div class="as-items" id="assetStrip"></div></div>
+
+  <!-- PRIYA GUIDE PANEL -->
+  <div class="priya-panel">
+    <div class="priya-panel-inner">
+      <div class="pp-eyebrow">Priya · Personalized Care Guide</div>
+      <div class="pp-title">Tell Priya your situation.<br><em>She'll build your guide.</em></div>
+      <div class="pp-sub">No forms. No questionnaires. Just tell Priya what's happening — she'll identify the right practitioners for you and generate a personalized PDF guide you can download and take to your next appointment.</div>
+      <div class="pp-form">
+        <select class="pp-input" id="pp_insurance">
+          <option value="">Insurance plan...</option>
+          <option value="Kaiser">Kaiser Permanente</option>
+          <option value="out-of-pocket">Out of pocket / PPO</option>
+          <option value="Medi-Cal">Medi-Cal</option>
+          <option value="other">Other / unsure</option>
+        </select>
+        <select class="pp-input" id="pp_location">
+          <option value="">Your area...</option>
+          <option value="East Bay">East Bay (Oakland / Alameda / Berkeley)</option>
+          <option value="San Francisco">San Francisco</option>
+          <option value="Walnut Creek">Walnut Creek / Contra Costa</option>
+          <option value="Marin">Marin / North Bay</option>
+          <option value="Other Bay Area">Other Bay Area</option>
+        </select>
+        <textarea class="pp-input full" id="pp_situation" rows="3" placeholder="Tell Priya what's happening — symptoms, what you've tried, what you need from a provider. The more detail, the more personalized your guide."></textarea>
+      </div>
+      <div class="pp-actions">
+        <button class="lg-btn p" onclick="runPriyaGuide()">Generate my guide</button>
+        <span class="pp-hint">Free · No account required · Downloads instantly</span>
+      </div>
+      <div class="think" id="ppThink" style="margin-top:10px">
+        <div class="pp-think"></div><div class="pp-think"></div><div class="pp-think"></div>
+        <span style="color:rgba(255,255,255,.45);font-size:11px">Priya is reviewing your situation...</span>
+      </div>
+      <div class="pp-result" id="ppResult">
+        <div class="pp-result-box">
+          <div class="pp-result-label">Priya's Assessment</div>
+          <div class="pp-result-body" id="ppResultBody"></div>
+        </div>
+        <div class="pp-download-row">
+          <button class="lg-btn dl" onclick="downloadPersonalizedPDF()">⬇ Download My Care Guide (PDF)</button>
+          <span class="pp-download-label">Yours to keep · Take it to your appointment</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAP INTELLIGENCE SEARCH -->
+  <div class="ai-panel">
+    <div class="ai-label">Gap Intelligence Engine — ask anything</div>
+    <div class="ai-row">
+      <textarea class="ai-in" id="aiQ" rows="2" placeholder="e.g. Who should I see for abnormal uterine bleeding with Kaiser insurance?"></textarea>
+      <button class="lg-btn p" onclick="runSearch()" style="flex-shrink:0;padding:8px 16px">Ask</button>
+    </div>
+    <div class="sq-row">
+      <span class="sq" onclick="ask('Who is best for a Kaiser patient in the East Bay?')">Kaiser East Bay</span>
+      <span class="sq" onclick="ask('Which practitioners have conflict or risk flags?')">Risk &amp; conflicts</span>
+      <span class="sq" onclick="ask('Who scores highest on cultural competency?')">Cultural competency</span>
+      <span class="sq" onclick="ask('Which Flourish practitioners can Priya refer to?')">Priya referrals</span>
+      <span class="sq" onclick="ask('What specialist types are missing from the current pod?')">Gap analysis</span>
+      <span class="sq" onclick="ask('What are our strongest asset practitioners and why?')">Top assets</span>
+    </div>
+    <div class="think" id="aiThink"><div class="td"></div><div class="td"></div><div class="td"></div><span>Equilibrium searching registry...</span></div>
+    <div class="ai-resp" id="aiResp">
+      <div class="ai-rl">Equilibrium · Gap Intelligence Summary</div>
+      <div class="ai-rb" id="aiRb"></div>
+      <div class="ai-rc" id="aiRc"></div>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <input class="fsb" type="text" placeholder="Search name, role, location..." oninput="render()" id="searchBox">
+    <div class="fp active" onclick="setFilt('all',this)">All</div>
+    <div class="fp" onclick="setFilt('glasshaus',this)">GlassHaus</div>
+    <div class="fp" onclick="setFilt('ascend',this)">Ascend</div>
+    <div class="fp" onclick="setFilt('community',this)">Community</div>
+    <div class="fp" onclick="setFilt('risk',this)">Flagged</div>
+    <div class="fp" onclick="setFilt('vetoed',this)">Vetoed</div>
+  </div>
+
+  <div class="cg" id="cardGrid"></div>
+
+  <div class="rubric-wrap" id="rubricWrap">
+    <div class="rwh" onclick="toggleRubricBody()">
+      <span class="rwt">Institutional Rubric — Dimension Weights</span>
+      <span id="rubricIcon" style="font-size:11px;color:var(--em)">Show ▾</span>
+    </div>
+    <div class="rwb" id="rubricBody">
+      <div style="font-size:11px;color:var(--em);margin-bottom:10px;line-height:1.6">Adjust dimension weights. Auto-normalize to 100%. Qualification threshold: <strong>5.5 / 10</strong>.</div>
+      <div class="wr" style="font-size:10px;color:var(--em);text-transform:uppercase;letter-spacing:.05em"><div>Dimension</div><div style="text-align:center">Weight</div><div style="text-align:right">%</div></div>
+      <div id="weightRows"></div>
+      <div style="margin-top:8px;display:flex;justify-content:flex-end;gap:7px;padding-top:8px;border-top:0.5px solid var(--cd)">
+        <button class="lg-btn" onclick="resetW()">Reset</button>
+        <button class="lg-btn p" onclick="saveW()">Save weights</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="nom-panel">
+    <div class="nom-label">Nominate a Practitioner — Community Referral Pipeline</div>
+    <div class="nom-grid">
+      <input class="ni" id="nom_name" placeholder="Practitioner or clinic name" oninput="clearNom()">
+      <input class="ni" id="nom_spec" placeholder="Specialty / focus area" oninput="clearNom()">
+      <input class="ni" id="nom_loc" placeholder="City, State" oninput="clearNom()">
+      <input class="ni" id="nom_src" placeholder="Referred by (source)" oninput="clearNom()">
+      <textarea class="ni full" id="nom_ctx" rows="2" style="resize:none" placeholder="Why nominate them?" oninput="clearNom()"></textarea>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="lg-btn p" onclick="runNom()">Research &amp; Score via Equilibrium</button>
+      <span class="nom-hint">5.5+ routes to Dream Team review · Lumen Rewards on DAO activation</span>
+    </div>
+    <div class="think" id="nomThink"><div class="td"></div><div class="td"></div><div class="td"></div><span>Equilibrium researching...</span></div>
+    <div class="nom-result" id="nomResult">
+      <div class="nom-sg" id="nomSG"></div>
+      <div class="nc" id="nomC"><span class="ncl" id="nomCL"></span><span class="ncv" id="nomCV"></span></div>
+      <div id="nomRisk"></div>
+      <div id="nomSum" style="font-size:12px;color:var(--em);line-height:1.7;margin-bottom:8px"></div>
+      <div id="nomLumen"></div>
+      <div class="nom-acts" id="nomActs"></div>
+    </div>
+  </div>
+</div>
+
+<div class="tf-trigger-wrap">
+  <button class="tf-trigger" onclick="toggleTf()">How practitioners are evaluated — Equilibrium Vetting Protocol</button>
+</div>
+<div class="tf-lightbox" id="tfLightbox">
+  <div class="tf-inner">
+    <div class="tf-t"><span>Transparency Statement · Equilibrium Vetting Protocol</span><button class="tf-close" onclick="toggleTf()">✕</button></div>
+    <div class="tf-b">
+      The GlassHaus Resource &amp; Practitioner Directory evaluates all external practitioners through an assets-first, risk-aware institutional rubric. Powered by Equilibrium. Composite score threshold: 5.5/10. GlassHaus has no referral or financial relationship with any external practitioner listed here.
+      <ul>
+        <li><strong>Clinical credentialing</strong> — board certification, NAMS/ACOG/MSCP, specialty training</li>
+        <li><strong>Cultural &amp; ancestral competency</strong> — decolonized frameworks, anti-dismissal, diverse traditions</li>
+        <li><strong>Patient advocacy</strong> — believes patients, does not gaslight, iterates toward resolution</li>
+        <li><strong>Philosophical alignment</strong> — not pharmaceutical-first only, open to integrative options</li>
+        <li><strong>Community rating</strong> — composite of BPN, Yelp, Google, community referrals</li>
+        <li><strong>Ecosystem fit</strong> — would receive a referral from Priya without friction</li>
+      </ul>
+      <div style="margin-top:8px">Digital practitioners are AI-powered agents — identified by the <em>(digital)</em> suffix. Lumen Rewards pending Wyoming DAO LLC activation.</div>
+    </div>
+  </div>
+</div>
+
+<div class="eq-footer">
+  <div class="ef-left">GlassHaus Resource &amp; Practitioner Directory · directory.glasshauswellness.com<br>Assets-first · Risk-aware · Continuously updated · Powered by Equilibrium</div>
+  <div class="ef-right"><div class="ef-dot"></div><div class="ef-eq">Equilibrium · Gap Intelligence Engine</div></div>
+</div>
+</div>
+
+<div class="pw-modal" id="pwModal">
+  <div class="pw-box">
+    <div class="pw-title"><span class="pw-star">★</span> Admin Access</div>
+    <div class="pw-sub">Enter the Equilibrium admin password</div>
+    <input class="pw-input" type="password" id="pwInput" placeholder="••••••••••" onkeydown="if(event.key==='Enter')checkPw()">
+    <div class="pw-error" id="pwError"></div>
+    <div class="pw-actions">
+      <button class="lg-btn" onclick="closePwModal()">Cancel</button>
+      <button class="lg-btn p" onclick="checkPw()">Unlock ★</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <div class="mt2" id="modalTitle">Add practitioner</div>
+    <div class="fg">
+      <div class="fg2 full"><div class="fl">Name / Organization</div><input class="fi" id="f_name" placeholder="Dr. Firstname Lastname, MD"></div>
+      <div class="fg2"><div class="fl">Role / Title</div><input class="fi" id="f_role" placeholder="OB/GYN · NAMS Certified"></div>
+      <div class="fg2"><div class="fl">Location</div><input class="fi" id="f_location" placeholder="Oakland, CA"></div>
+      <div class="fg2"><div class="fl">Tier</div><select class="fi" id="f_tier"><option value="glasshaus">GlassHaus Internal</option><option value="ascend">Ascend Network</option><option value="community" selected>Community Vetted</option><option value="nominated">Nominated</option></select></div>
+      <div class="fg2"><div class="fl">Pod</div><select class="fi" id="f_pod"><option value="flourish">Flourish</option><option value="general">General Wellness</option><option value="hfhc">HFHC / CPC</option><option value="ascend">Ascend</option><option value="multi">Multi-pod</option></select></div>
+      <div class="fg2"><div class="fl">Digital?</div><select class="fi" id="f_digital"><option value="no">No</option><option value="yes">Yes — AI digital</option></select></div>
+      <div class="fg2 full"><div class="fl">Photo URL</div><input class="fi" id="f_photo" placeholder="https://..."></div>
+      <div class="fg2 full"><div class="fl">Contact / Website</div><input class="fi" id="f_contact" placeholder="(510) 555-0000 · website.com"></div>
+      <div class="fg2 full"><div class="fl">Asset Description</div><input class="fi" id="f_asset" placeholder="Specific capability this practitioner adds to the ecosystem"></div>
+    </div>
+    <div class="rs-wrap">
+      <div class="rs-t">Rubric scores (1–10)</div>
+      <div id="rubricSliders"></div>
+      <div class="comp-r"><span style="font-size:11px;color:var(--em)">Composite score</span><span style="font-size:18px;font-weight:500" id="compDisp">—</span></div>
+    </div>
+    <div class="risk-ed">
+      <div class="re-t">Risk &amp; Conflict Analysis</div>
+      <div class="re-r"><span class="re-l">COI</span><input class="re-i" id="f_coi" placeholder="Pharmaceutical ties..."></div>
+      <div class="re-r"><span class="re-l">Clinical caution</span><input class="re-i" id="f_caution" placeholder="Patient complaints..."></div>
+      <div class="re-r"><span class="re-l">Asset intel</span><input class="re-i" id="f_asn" placeholder="Unique credential..."></div>
+    </div>
+    <div class="fg2" style="margin-bottom:8px"><div class="fl">Status</div><select class="fi" id="f_status"><option value="auto">Auto</option><option value="qualified">Qualified</option><option value="pending">Pending</option><option value="vetoed">Vetoed</option><option value="internal">Internal</option></select></div>
+    <div class="fg2"><div class="fl">Notes</div><textarea class="fi" id="f_notes" rows="2"></textarea></div>
+    <div class="fa"><button class="lg-btn" onclick="closeModal()">Cancel</button><button class="lg-btn p" id="saveBtn" onclick="saveP()">Save</button></div>
+  </div>
+</div>
+
+<script>
+const DIMS=[{key:'clinical',label:'Clinical credentialing'},{key:'cultural',label:'Cultural & ancestral competency'},{key:'advocacy',label:'Patient advocacy'},{key:'alignment',label:'Philosophical alignment'},{key:'community',label:'Community rating'},{key:'ecosystem',label:'Ecosystem fit'}];
+const POD_LABELS={all:'All Pods',flourish:'Flourish',general:'General Wellness',hfhc:'HFHC / CPC',ascend:'Ascend',multi:'Multi-Pod'};
+const ADMIN_PW='eqsecure';
+let weights={clinical:1,cultural:1.2,advocacy:1.2,alignment:1,community:1,ecosystem:0.8};
+let practitioners=[],activeFilt='all',activePod='all',editingId=null,hlIds=[],pendingNom=null,adminUnlocked=false;
+let priyaGuideData=null;
+
+const AVATARS={
+  gh1:`<svg viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="bg1" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="#2D1F3D"/><stop offset="100%" stop-color="#1A1225"/></radialGradient></defs><circle cx="26" cy="26" r="26" fill="url(#bg1)"/><ellipse cx="26" cy="34" rx="13" ry="9" fill="#3D2C5A" opacity="0.7"/><circle cx="26" cy="20" r="9" fill="#C4ADEA"/><circle cx="23" cy="18" r="1.2" fill="#1A1225"/><circle cx="29" cy="18" r="1.2" fill="#1A1225"/><circle cx="23.5" cy="17.5" r="0.4" fill="white" opacity="0.8"/><circle cx="29.5" cy="17.5" r="0.4" fill="white" opacity="0.8"/><path d="M22 23 Q26 26 30 23" stroke="#9B7FD4" stroke-width="1" fill="none" stroke-linecap="round"/><ellipse cx="26" cy="11" rx="5" ry="3" fill="#6B4FA8" opacity="0.6"/><text x="26" y="45" font-family="serif" font-size="5" fill="#C4ADEA" text-anchor="middle">PRIYA</text></svg>`,
+  gh2:`<svg viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="bg2" cx="50%" cy="35%" r="65%"><stop offset="0%" stop-color="#2A3520"/><stop offset="100%" stop-color="#1A2515"/></radialGradient></defs><circle cx="26" cy="26" r="26" fill="url(#bg2)"/><ellipse cx="26" cy="34" rx="13" ry="9" fill="#2A3F28" opacity="0.8"/><circle cx="26" cy="20" r="9" fill="#C5D4A8"/><circle cx="22.5" cy="18.5" r="1.3" fill="#1A2515"/><circle cx="29.5" cy="18.5" r="1.3" fill="#1A2515"/><path d="M22 23 Q26 25.5 30 23" stroke="#8BAF8E" stroke-width="1.2" fill="none" stroke-linecap="round"/><text x="26" y="45" font-family="serif" font-size="5" fill="#8BAF8E" text-anchor="middle">BRENDA</text></svg>`,
+  gh3:`<svg viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="bg3" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="#1A2535"/><stop offset="100%" stop-color="#0F1820"/></radialGradient></defs><circle cx="26" cy="26" r="26" fill="url(#bg3)"/><ellipse cx="26" cy="35" rx="13" ry="8" fill="#1E3045" opacity="0.8"/><circle cx="26" cy="20" r="9" fill="#B5C8D8"/><circle cx="22.5" cy="18" r="1.3" fill="#0F1820"/><circle cx="29.5" cy="18" r="1.3" fill="#0F1820"/><path d="M22.5 23.5 Q26 25 29.5 23.5" stroke="#4A7A9B" stroke-width="1" fill="none" stroke-linecap="round"/><text x="26" y="45" font-family="serif" font-size="5" fill="#7FB3D3" text-anchor="middle">TERRY</text></svg>`,
+  gh4:`<svg viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="bg4" cx="50%" cy="35%" r="65%"><stop offset="0%" stop-color="#251A0F"/><stop offset="100%" stop-color="#1A1008"/></radialGradient></defs><circle cx="26" cy="26" r="26" fill="url(#bg4)"/><ellipse cx="26" cy="35" rx="13" ry="8" fill="#3D2C1E" opacity="0.8"/><circle cx="26" cy="20" r="9" fill="#C8A882"/><circle cx="22.5" cy="18.5" r="1.3" fill="#1A1008"/><circle cx="29.5" cy="18.5" r="1.3" fill="#1A1008"/><path d="M22.5 23.5 Q26 25.5 29.5 23.5" stroke="#7A5C42" stroke-width="1.2" fill="none" stroke-linecap="round"/><text x="26" y="45" font-family="serif" font-size="5" fill="#C9A84C" text-anchor="middle">KAIROS</text></svg>`,
+};
+const PHOTO_URLS={c3:'https://leachobgyn.com/wp-content/uploads/2024/11/Timothy-Leach-MD.jpg'};
+
+function monogram(name,tier){const p=name.split(' ');const i=p.length>=2?p[0][0]+p[p.length-1][0]:name.substring(0,2);const b=tier==='ascend'?['#7A5000','#FFF8E6']:tier==='glasshaus'?['#6B4FA8','#F0EBF9']:['#1A5C3A','#EBF5F0'];return`<svg viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg"><circle cx="26" cy="26" r="26" fill="${b[0]}"/><text x="26" y="31" font-family="Cinzel,serif" font-size="15" font-weight="500" fill="${b[1]}" text-anchor="middle">${i.toUpperCase()}</text></svg>`;}
+function avatarHTML(p){if(AVATARS[p.id])return`<div class="pc-avatar">${AVATARS[p.id]}</div>`;const url=p.photo||PHOTO_URLS[p.id];if(url){const fb=monogram(p.name,p.tier).replace(/'/g,"\\'");return`<div class="pc-avatar"><img src="${url}" alt="${p.name}" onerror="this.parentNode.innerHTML='${fb}'" /></div>`;}return`<div class="pc-avatar">${monogram(p.name,p.tier)}</div>`;}
+
+const DD=[
+  {id:'gh1',name:'Priya',digital:true,role:'Menopause & Hormonal Sovereignty · Oracle · ElevenLabs Voice',location:'GlassHaus Digital',tier:'glasshaus',pod:'flourish',contact:'flourish.glasshauswellness.com',status:'internal',asset:'24/7 AI menopause guide · Flourish POD anchor · decolonized framework · first session always free',scores:{clinical:10,cultural:10,advocacy:10,alignment:10,community:10,ecosystem:10},coi:'',caution:'',assetNotes:'Core GlassHaus asset.',notes:'Internal evaluation only.'},
+  {id:'gh2',name:'Brenda',digital:true,role:'Core Wellness Guide · Somatic-First · The Greenhouse',location:'GlassHaus Digital',tier:'glasshaus',pod:'general',contact:'glasshauswellness.com',status:'internal',asset:'Somatic entry practitioner · always free tier · primary member entry point',scores:{clinical:9,cultural:10,advocacy:10,alignment:10,community:10,ecosystem:10},coi:'',caution:'',assetNotes:'Primary entry point for all GlassHaus members.',notes:'Internal evaluation only.'},
+  {id:'gh3',name:'Terry',digital:true,role:'Co-Parenting Mediation · Child-Centered · CPC',location:'GlassHaus Digital — The Panic Room',tier:'glasshaus',pod:'hfhc',contact:'glasshauswellness.com',status:'internal',asset:'HFHC/CPC anchor · Bridge Protocol · high-conflict co-parenting mediation',scores:{clinical:9,cultural:9,advocacy:10,alignment:10,community:10,ecosystem:10},coi:'',caution:'',assetNotes:'No equivalent in ecosystem.',notes:'Internal evaluation only.'},
+  {id:'gh4',name:'Kairos',digital:true,role:"Men's Emotional Intelligence · The Lighthouse",location:'GlassHaus Digital',tier:'glasshaus',pod:'general',contact:'glasshauswellness.com',status:'internal',asset:"Men's liberation anchor · 21-year foundation · enters through capability not vulnerability",scores:{clinical:9,cultural:9,advocacy:9,alignment:10,community:10,ecosystem:10},coi:'',caution:'',assetNotes:"Rare asset in men's wellness.",notes:'Internal evaluation only.'},
+  {id:'a1',name:'Michele Holcombe',digital:false,role:'Founding CCO · Clinical Ethics · UTCC · Ascend Wellness Group',location:'Baltimore-Washington',tier:'ascend',pod:'ascend',contact:'Ascend Wellness Group',status:'internal',asset:'Clinical ethics architecture · Flourish curriculum lead · Baltimore-Washington anchor',scores:{clinical:10,cultural:10,advocacy:10,alignment:10,community:10,ecosystem:10},coi:'',caution:'',assetNotes:'Dream Team. Cannot be replicated.',notes:'Founding CCO.'},
+  {id:'c1',name:'Dr. Antonia Nicosia, MD',digital:false,role:'OB/GYN · Kaiser Permanente Alameda · English & Spanish',location:'Alameda, CA',tier:'community',pod:'flourish',contact:'(510) 752-1080 · kp.org',status:'qualified',asset:'Inside Kaiser — zero cost barrier · bio-identical HRT · bilingual',scores:{clinical:8,cultural:7,advocacy:9,alignment:7,community:8,ecosystem:8},coi:'',caution:'Kaiser system constraints may limit holistic options.',assetNotes:'Kaiser-accessible with patient-first reputation.',notes:'Strong BPN endorsement.'},
+  {id:'c2',name:'Dr. Laurie Miller, MD',digital:false,role:'OB/GYN Menopause Specialist · Kaiser SF · ACOG Fellow',location:'San Francisco, CA',tier:'community',pod:'flourish',contact:'(415) 833-2200 · kp.org',status:'qualified',asset:'Kaiser SF designated menopause specialist · ACOG Fellow · 20+ years',scores:{clinical:9,cultural:6,advocacy:7,alignment:7,community:8,ecosystem:7},coi:'',caution:'Cultural competency for BIPOC patients not deeply documented.',assetNotes:'Strongest menopause credential inside Kaiser SF.',notes:'Named by Kaiser SF patient community.'},
+  {id:'c3',name:'Dr. Timothy A. Leach, MD, FACOG, MSCP',digital:false,role:'Only NAMS-Certified Menopause Specialist in East Bay · John Muir Medical Director',location:'Walnut Creek, CA',tier:'community',pod:'flourish',contact:'(925) 935-6952 · leachobgyn.com',status:'qualified',asset:'Only NAMS-certified menopause specialist in the East Bay · robotic hysterectomy',scores:{clinical:10,cultural:5,advocacy:7,alignment:6,community:7,ecosystem:6},coi:'',caution:'Male provider — cultural competency for BIPOC women pending review.',assetNotes:'Irreplaceable clinical credential in geography.',notes:'Accepts Kaiser (verify plan).'},
+  {id:'c4',name:"The Women's Vitality Center",digital:false,role:'Dr. Amy Day, ND, MSCP · Naturopathic Hormone Medicine',location:'Oakland, CA',tier:'community',pod:'flourish',contact:'(510) 859-4572 · womensvitalitycenter.com',status:'qualified',asset:'MSCP certified naturopath · whole-person hormone care · free discovery call',scores:{clinical:8,cultural:8,advocacy:9,alignment:9,community:8,ecosystem:9},coi:'',caution:'',assetNotes:'Best naturopathic + clinical credential combo in East Bay.',notes:'Free discovery call. Virtual care statewide.'},
+  {id:'c5',name:'Millie Clinic',digital:false,role:"Certified Nurse Midwives + Women's Health NPs · Menopause & Gynecology",location:'Berkeley, CA',tier:'community',pod:'flourish',contact:'(510) 495-0310 · millieclinic.com',status:'qualified',asset:'Midwife-led gynecology · longer appointments · wide insurance including Medi-Cal',scores:{clinical:8,cultural:8,advocacy:9,alignment:8,community:8,ecosystem:9},coi:'',caution:'',assetNotes:'Rare: midwife-led gynecology without maternity requirement.',notes:'Accepts Aetna, Cigna, United, Anthem, Blue Shield, Medi-Cal.'},
+];
+
+function load(){try{const s=localStorage.getItem('gh_dir_flourish');if(s){const d=JSON.parse(s);practitioners=d.p||[...DD];weights=d.w||weights;}else{practitioners=[...DD];}}catch(e){practitioners=[...DD];}}
+function save(){try{localStorage.setItem('gh_dir_flourish',JSON.stringify({p:practitioners,w:weights}));}catch(e){}}
+function comp(sc){const tot=Object.values(weights).reduce((a,b)=>a+Number(b),0)||1;let s=0;DIMS.forEach(d=>{s+=((sc[d.key]||5)*Number(weights[d.key]))/tot;});return Math.round(s*10)/10;}
+function getSt(p){if(p.status!=='auto')return p.status;return comp(p.scores)>=5.5?'qualified':'vetoed';}
+function tierOrd(t){return t==='glasshaus'?0:t==='ascend'?1:t==='nominated'?2:3;}
+function hasRisk(p){return !!(p.coi||p.caution);}
+function displayName(p){return p.digital?`${p.name} <em>(digital)</em>`:p.name;}
+function openPwModal(){document.getElementById('pwInput').value='';document.getElementById('pwError').textContent='';document.getElementById('pwModal').classList.add('open');setTimeout(()=>document.getElementById('pwInput').focus(),100);}
+function closePwModal(){document.getElementById('pwModal').classList.remove('open');}
+function checkPw(){const v=document.getElementById('pwInput').value;if(v===ADMIN_PW){adminUnlocked=true;closePwModal();document.getElementById('adminBar').classList.add('open');document.getElementById('adminStarBtn').style.background='rgba(226,75,74,0.2)';document.getElementById('adminStarBtn').style.borderColor='rgba(226,75,74,0.7)';render();}else{document.getElementById('pwError').textContent='Incorrect password.';document.getElementById('pwInput').value='';document.getElementById('pwInput').focus();}}
+function lockAdmin(){adminUnlocked=false;document.getElementById('adminBar').classList.remove('open');document.getElementById('adminStarBtn').style.background='';document.getElementById('adminStarBtn').style.borderColor='';document.getElementById('rubricWrap').classList.remove('open');render();}
+function toggleTf(){document.getElementById('tfLightbox').classList.toggle('open');}
+function setPod(v){activePod=v;activeFilt='all';document.querySelectorAll('.fp').forEach(p=>p.classList.remove('active'));document.querySelector('.fp').classList.add('active');render();}
+
+// PRIYA GUIDE
+async function runPriyaGuide(){
+  const insurance=document.getElementById('pp_insurance').value;
+  const location=document.getElementById('pp_location').value;
+  const situation=document.getElementById('pp_situation').value.trim();
+  if(!situation){alert('Please tell Priya what\'s happening first.');return;}
+  document.getElementById('ppThink').classList.add('on');
+  document.getElementById('ppResult').classList.remove('open');
+  priyaGuideData=null;
+
+  const ctx=practitioners.filter(p=>getSt(p)!=='vetoed'&&p.tier!=='glasshaus').map(p=>{
+    const sc=comp(p.scores);const st=getSt(p);
+    return`ID:${p.id}|${p.name}|${p.location}|${p.contact}\nAsset:${p.asset||'N/A'}\nScore:${st==='internal'?'Internal':sc.toFixed(1)+'/10'}\nCOI:${p.coi||'None'}|Caution:${p.caution||'None'}`;
+  }).join('\n---\n');
+
+  const sys=`You are Priya, the GlassHaus Flourish menopause specialist Oracle. A member has shared their situation with you to get a personalized care guide. You are warm, direct, and sovereign — you speak to women as capable adults navigating a broken system, not patients to be managed.
+
+Review their situation and the available practitioners. Select the 2-4 most relevant practitioners for them based on their insurance, location, and needs. Then write:
+1. A 3-4 sentence personal assessment in Priya's voice — acknowledge what they're dealing with, validate the frustration, then pivot to agency and the resources you're giving them.
+2. A short entry for each recommended practitioner: name, why they're the right fit for THIS person, contact info, and the exact script to use when calling.
+
+Available practitioners:
+${ctx}
+
+User situation:
+Insurance: ${insurance||'Not specified'}
+Location: ${location||'Not specified'}
+Situation: ${situation}
+
+Respond as JSON only — no markdown:
+{"assessment":"Priya's personal message","practitioners":[{"id":"id","name":"name","why":"why this practitioner fits this specific person","contact":"contact info","script":"what to say when calling"}]}`;
+
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,system:sys,messages:[{role:'user',content:`Insurance: ${insurance||'Not specified'}\nLocation: ${location||'Not specified'}\nSituation: ${situation}`}]})});
+    const d=await r.json();let text=d.content?.[0]?.text||'{}';text=text.replace(/```json|```/g,'').trim();
+    let res={};try{res=JSON.parse(text);}catch(e){res={assessment:"I've reviewed your situation and the practitioners available to you. Based on what you've shared, I'm recommending the options most aligned with your needs, your insurance, and your location.",practitioners:[]};}
+    document.getElementById('ppThink').classList.remove('on');
+    priyaGuideData={insurance,location,situation,assessment:res.assessment,practitioners:res.practitioners||[]};
+    let body=res.assessment+'\n\n';
+    (res.practitioners||[]).forEach((p,i)=>{body+=`${i+1}. ${p.name}\n${p.why}\nContact: ${p.contact}\nWhat to say: "${p.script}"\n\n`;});
+    document.getElementById('ppResultBody').textContent=body.trim();
+    document.getElementById('ppResult').classList.add('open');
+  }catch(e){
+    document.getElementById('ppThink').classList.remove('on');
+    document.getElementById('ppResultBody').textContent='Priya is temporarily unavailable. Please try the Gap Intelligence search below or browse the directory directly.';
+    document.getElementById('ppResult').classList.add('open');
+  }
+}
+
+function downloadPersonalizedPDF(){
+  if(!priyaGuideData){alert('Generate your guide first.');return;}
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
+  const W=215.9,margin=15,cw=W-margin*2;
+  let y=0;
+
+  // Header bar
+  doc.setFillColor(26,18,37);
+  doc.rect(0,0,W,22,'F');
+  doc.setFont('times','normal');
+  doc.setFontSize(13);doc.setTextColor(250,247,242);
+  doc.text('FLOURISH',margin,12);
+  doc.setFontSize(8);doc.setTextColor(196,173,234);
+  doc.text('Resource & Practitioner Directory — Powered by Equilibrium',margin,18);
+  doc.setFontSize(7);doc.setTextColor(196,173,234);
+  doc.text('directory.glasshauswellness.com',W-margin,18,{align:'right'});
+  y=30;
+
+  // Title
+  doc.setFont('times','bolditalic');doc.setFontSize(18);doc.setTextColor(61,44,30);
+  doc.text('Your Personalized Menopause Care Guide',margin,y);y+=8;
+  doc.setFont('times','italic');doc.setFontSize(10);doc.setTextColor(122,92,66);
+  doc.text('Built by Priya based on your situation — take this to your next appointment.',margin,y);y+=10;
+
+  // Situation summary box
+  doc.setFillColor(240,235,249);
+  const situationLines=doc.splitTextToSize(`Insurance: ${priyaGuideData.insurance||'Not specified'}  ·  Location: ${priyaGuideData.location||'Not specified'}`,cw-8);
+  doc.roundedRect(margin,y,cw,8+situationLines.length*4,2,2,'F');
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(107,79,168);
+  doc.text(situationLines,margin+4,y+5);y+=12+situationLines.length*4;
+
+  // Priya assessment
+  doc.setFont('times','italic');doc.setFontSize(10);doc.setTextColor(61,44,30);
+  const assessLines=doc.splitTextToSize(priyaGuideData.assessment||'',cw);
+  doc.text(assessLines,margin,y);y+=assessLines.length*5+8;
+
+  // Divider
+  doc.setDrawColor(196,173,234);doc.setLineWidth(0.3);doc.line(margin,y,W-margin,y);y+=8;
+
+  // Practitioners
+  (priyaGuideData.practitioners||[]).forEach((p,i)=>{
+    if(y>240){doc.addPage();y=20;}
+    // Card bg
+    doc.setFillColor(255,255,255);
+    doc.setDrawColor(196,173,234);doc.setLineWidth(0.4);
+    const cardStart=y;
+
+    // Number badge
+    doc.setFillColor(107,79,168);doc.circle(margin+4,y+4,4,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(255,255,255);
+    doc.text(String(i+1),margin+4,y+6,{align:'center'});
+
+    // Name
+    doc.setFont('times','bold');doc.setFontSize(13);doc.setTextColor(61,44,30);
+    doc.text(p.name,margin+12,y+6);y+=12;
+
+    // Why this practitioner
+    doc.setFont('times','italic');doc.setFontSize(9);doc.setTextColor(122,92,66);
+    const whyLines=doc.splitTextToSize(p.why||'',cw-12);
+    doc.text(whyLines,margin+12,y);y+=whyLines.length*4.5+4;
+
+    // Contact
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(107,79,168);
+    doc.text('Contact: '+p.contact,margin+12,y);y+=5;
+
+    // Script box
+    doc.setFillColor(239,232,220);
+    const scriptLines=doc.splitTextToSize('What to say: "'+p.script+'"',cw-16);
+    doc.roundedRect(margin+12,y,cw-12,5+scriptLines.length*4,1,1,'F');
+    doc.setFont('times','italic');doc.setFontSize(8);doc.setTextColor(61,44,30);
+    doc.text(scriptLines,margin+15,y+4);y+=scriptLines.length*4+10;
+
+    // Card border
+    doc.roundedRect(margin,cardStart-2,cw,y-cardStart+2,2,2,'S');
+    y+=4;
+  });
+
+  // Priya CTA
+  if(y>240){doc.addPage();y=20;}
+  y+=4;
+  doc.setFillColor(26,18,37);
+  doc.roundedRect(margin,y,cw,22,3,3,'F');
+  doc.setFont('times','bold');doc.setFontSize(11);doc.setTextColor(250,247,242);
+  doc.text('Before your appointment — talk to Priya.',margin+8,y+9);
+  doc.setFont('times','italic');doc.setFontSize(8);doc.setTextColor(196,173,234);
+  doc.text('flourish.glasshauswellness.com  ·  First conversation always free',margin+8,y+16);
+  y+=28;
+
+  // Disclaimer
+  doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(160,140,120);
+  const disc=doc.splitTextToSize('This guide is for informational purposes only. Always verify insurance coverage and contact information directly with each provider before booking. This is not a medical recommendation. Flourish does not have a referral or financial relationship with any provider listed. © 2026 Glasshaus Wellness, Inc.',cw);
+  doc.text(disc,margin,y);
+
+  // Footer on all pages
+  const pageCount=doc.internal.getNumberOfPages();
+  for(let i=1;i<=pageCount;i++){
+    doc.setPage(i);
+    doc.setFillColor(26,18,37);doc.rect(0,272,W,17,'F');
+    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(100,80,120);
+    doc.text('Flourish by GlassHaus Wellness, Inc.  ·  Powered by Equilibrium',margin,279);
+    doc.text(`Page ${i} of ${pageCount}`,W-margin,279,{align:'right'});
+  }
+
+  doc.save('Flourish-Care-Guide-'+new Date().toISOString().slice(0,10)+'.pdf');
+}
+
+function renderStats(){let list=practitioners;if(activePod!=='all')list=list.filter(p=>p.pod===activePod||p.tier==='glasshaus');document.getElementById('statsRow').innerHTML=[{label:'Directory assets',val:list.length},{label:'GlassHaus / Ascend',val:list.filter(p=>getSt(p)==='internal').length},{label:'Qualified external',val:list.filter(p=>getSt(p)==='qualified').length},{label:'Flagged / Nominated',val:list.filter(p=>hasRisk(p)&&getSt(p)!=='internal').length+list.filter(p=>p.tier==='nominated').length}].map(s=>`<div class="sc"><div class="sl">${s.label}</div><div class="sv">${s.val}</div></div>`).join('');}
+function renderAssets(){let list=practitioners.filter(p=>getSt(p)!=='vetoed'&&p.asset);if(activePod!=='all')list=list.filter(p=>p.pod===activePod||p.tier==='glasshaus');document.getElementById('assetStrip').innerHTML=list.slice(0,7).map(p=>`<span class="as-item">${p.name}${p.digital?' (digital)':''}: ${p.asset.split('·')[0].trim()}</span>`).join('');}
+function render(){const q=(document.getElementById('searchBox')||{}).value?.toLowerCase()||'';let list=[...practitioners].sort((a,b)=>tierOrd(a.tier)-tierOrd(b.tier));if(activePod!=='all')list=list.filter(p=>p.pod===activePod||p.tier==='glasshaus'||p.tier==='ascend');if(activeFilt==='vetoed')list=list.filter(p=>getSt(p)==='vetoed');else if(activeFilt==='risk')list=list.filter(p=>hasRisk(p));else if(activeFilt==='community')list=list.filter(p=>p.tier==='community'||p.tier==='nominated');else if(activeFilt==='glasshaus')list=list.filter(p=>p.tier==='glasshaus');else if(activeFilt==='ascend')list=list.filter(p=>p.tier==='ascend');if(q)list=list.filter(p=>(p.name+p.role+p.location+p.pod+(p.asset||'')).toLowerCase().includes(q));const grid=document.getElementById('cardGrid');if(!list.length){grid.innerHTML='<div style="padding:2rem;text-align:center;color:var(--em);font-size:12px">No practitioners match.</div>';renderStats();renderAssets();return;}grid.innerHTML=list.map(p=>{const st=getSt(p);const sc=comp(p.scores);const scCls=st==='internal'?'int':sc>=5.5?'pass':'fail';const cCls=p.tier==='glasshaus'?'gh':p.tier==='ascend'?'asc':st==='vetoed'?'vt':'';const hlCls=hlIds.includes(p.id)?'hl':'';const tb=p.tier==='glasshaus'?`<span class="bdg gh">GlassHaus</span>`:p.tier==='ascend'?`<span class="bdg asc">Ascend</span>`:p.tier==='nominated'?`<span class="bdg nom">Nominated</span>`:`<span class="bdg com">Community</span>`;const pb=p.pod==='flourish'?`<span class="bdg fl">Flourish</span>`:p.pod==='hfhc'?`<span class="bdg hf">HFHC</span>`:p.pod==='ascend'?`<span class="bdg asc">Ascend</span>`:`<span class="bdg gen">General</span>`;const stb=st==='vetoed'?`<span class="bdg vt">Vetoed</span>`:st==='pending'?`<span class="bdg pend">Pending</span>`:'';const ab=p.asset?`<span class="bdg asset">Asset</span>`:'';const dotC=st==='internal'?'di':sc>=5.5?'dp':'df';const sd=st==='internal'?'Internal':sc.toFixed(1)+'/10';const rfs=[];if(p.coi)rfs.push(`<span class="rf coi" onclick="toggleRP('${p.id}','coi',event)">⚑ COI</span>`);if(p.caution)rfs.push(`<span class="rf caut" onclick="toggleRP('${p.id}','caut',event)">⚠ Caution</span>`);if(p.assetNotes)rfs.push(`<span class="rf asset" onclick="toggleRP('${p.id}','asset',event)">★ Asset Intel</span>`);const adminRow=adminUnlocked?`<div class="admin-card-row open"><button class="acb" onclick="editP('${p.id}')">★ Edit</button>${st!=='vetoed'?`<button class="acb" onclick="vetoP('${p.id}')">★ Flag veto</button>`:`<button class="acb" onclick="unVeto('${p.id}')">★ Remove veto</button>`}<button class="acb" onclick="delP('${p.id}')">★ Remove</button></div>`:'';return`<div class="pc ${cCls} ${hlCls}" id="card_${p.id}"><div class="pc-top"><div class="pc-left">${avatarHTML(p)}<div class="pc-info"><div class="pc-name">${displayName(p)}</div><div class="pc-role">${p.role} · ${p.location}</div><div class="pc-meta">${tb}${pb}${stb}${ab}</div>${rfs.length?`<div class="rf-row">${rfs.join('')}</div>`:''}</div></div><div class="pc-right"><div class="sp ${scCls}"><div class="dot ${dotC}"></div>${sd}</div><button class="pc-detail-btn" onclick="toggleCard('${p.id}')">Details ▾</button></div></div><div class="exp" id="exp_${p.id}"><div class="risk-block rb-coi" id="coi_${p.id}"><div class="rb-title">⚑ Conflict of Interest</div>${p.coi}</div><div class="risk-block rb-caut" id="caut_${p.id}"><div class="rb-title">⚠ Clinical Caution</div>${p.caution}</div><div class="risk-block rb-asset" id="asset_${p.id}"><div class="rb-title">★ Asset Intelligence</div>${p.assetNotes||''}</div><div class="pc-notes">${p.notes||'No notes.'}</div><div class="dg">${DIMS.map(d=>{const v=p.scores[d.key]||0;const fc=v>=7?'high':v>=5.5?'mid':'low';return`<div class="dr"><div class="dl">${d.label}</div><div class="db-w"><div class="db"><div class="df2 ${fc}" style="width:${v*10}%"></div></div><div class="dv">${v}</div></div></div>`;}).join('')}</div>${p.contact?`<div style="font-size:11px;color:var(--em);margin-bottom:8px">${p.contact}</div>`:''} ${adminRow}</div></div>`;}).join('');renderStats();renderAssets();}
+function toggleRP(id,type,e){e.stopPropagation();const expEl=document.getElementById('exp_'+id);if(!expEl.classList.contains('open')){expEl.classList.add('open');const btn=document.querySelector(`#card_${id} .pc-right .pc-detail-btn`);if(btn)btn.textContent='Details ▴';}const map={coi:'coi_',caut:'caut_',asset:'asset_'};Object.entries(map).forEach(([k,pre])=>{const el=document.getElementById(pre+id);if(!el)return;k===type?el.classList.toggle('open'):el.classList.remove('open');});}
+function toggleCard(id){const el=document.getElementById('exp_'+id);const btn=document.querySelector(`#card_${id} .pc-right .pc-detail-btn`);const open=el.classList.toggle('open');if(btn)btn.textContent=open?'Details ▴':'Details ▾';if(!open)['coi_','caut_','asset_'].forEach(pre=>{const p=document.getElementById(pre+id);if(p)p.classList.remove('open');});}
+function setFilt(f,el){activeFilt=f;document.querySelectorAll('.fp').forEach(p=>p.classList.remove('active'));el.classList.add('active');render();}
+function ask(q){document.getElementById('aiQ').value=q;runSearch();}
+function scrollToCard(id){const el=document.getElementById('card_'+id);if(!el)return;el.scrollIntoView({behavior:'smooth',block:'center'});if(!document.getElementById('exp_'+id).classList.contains('open'))toggleCard(id);}
+async function runSearch(){const query=document.getElementById('aiQ').value.trim();if(!query)return;document.getElementById('aiThink').classList.add('on');document.getElementById('aiResp').classList.remove('open');hlIds=[];let list=practitioners;if(activePod!=='all')list=list.filter(p=>p.pod===activePod||p.tier==='glasshaus'||p.tier==='ascend');const ctx=list.map(p=>{const st=getSt(p);const sc=comp(p.scores);return`ID:${p.id}|${p.name}${p.digital?' (digital)':''}|Tier:${p.tier}|Pod:${p.pod}|${p.location}\nAsset:${p.asset||'N/A'}|Status:${st}|Score:${st==='internal'?'Internal':sc.toFixed(1)+'/10'}\nCOI:${p.coi||'None'}|Caution:${p.caution||'None'}`;}).join('\n---\n');const sys=`You are the Equilibrium Gap Intelligence Engine. ${activePod!=='all'?`Pod: ${POD_LABELS[activePod]}`:'Full directory.'}\nARCHITECTURE: GlassHaus digital practitioners first → Ascend → Community → Nominated.\nMISSION: Assets-first, decolonized wellness, patient sovereignty. Never recommend competitor platforms.\nTHRESHOLD: 5.5/10. Surface risk flags.\nRegistry:\n${ctx}\nRespond: 3-5 sentence assets-first summary. REFS:["id1","id2"] last line only.`;try{const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,system:sys,messages:[{role:'user',content:query}]})});const d=await r.json();const text=d.content?.[0]?.text||'';let body=text,refs=[];const m=text.match(/REFS:(\[.*?\])/s);if(m){try{refs=JSON.parse(m[1]);}catch(e){}body=text.replace(/REFS:\[.*?\]/s,'').trim();}hlIds=refs;document.getElementById('aiRb').textContent=body;document.getElementById('aiRc').innerHTML=refs.map(id=>{const p=practitioners.find(x=>x.id===id);if(!p)return'';const st=getSt(p);const sc=comp(p.scores);return`<div class="arc" onclick="scrollToCard('${id}')"><div><div class="arc-n">${p.name}${p.digital?' (digital)':''}</div><div class="arc-r">${p.location} · ${p.tier}</div></div><div class="arc-s ${st==='internal'?'int':'pass'}">${st==='internal'?'Internal':sc.toFixed(1)+'/10'}</div></div>`;}).join('');document.getElementById('aiThink').classList.remove('on');document.getElementById('aiResp').classList.add('open');render();}catch(e){document.getElementById('aiThink').classList.remove('on');document.getElementById('aiRb').textContent='Equilibrium search unavailable.';document.getElementById('aiResp').classList.add('open');}}
+function clearNom(){document.getElementById('nomResult').classList.remove('open');pendingNom=null;}
+async function runNom(){const name=document.getElementById('nom_name').value.trim();if(!name){alert('Please enter a practitioner name.');return;}const spec=document.getElementById('nom_spec').value.trim(),loc=document.getElementById('nom_loc').value.trim(),src=document.getElementById('nom_src').value.trim(),ctx=document.getElementById('nom_ctx').value.trim();document.getElementById('nomThink').classList.add('on');document.getElementById('nomResult').classList.remove('open');const sys=`You are the Equilibrium Rubric Engine. Score a nominated practitioner on 6 dimensions (1-10). Default to 5 when evidence is insufficient. Respond ONLY as valid JSON: {"clinical":N,"cultural":N,"advocacy":N,"alignment":N,"community":N,"ecosystem":N,"coi":"text or empty","caution":"text or empty","asset":"asset description","summary":"2-3 sentence assessment","recommend":true/false}`;try{const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,system:sys,messages:[{role:'user',content:`Practitioner: ${name}\nSpecialty: ${spec||'Not specified'}\nLocation: ${loc||'Not specified'}\nReferred by: ${src||'Anonymous'}\nContext: ${ctx||'None'}`}]})});const d=await r.json();let text=d.content?.[0]?.text||'{}';text=text.replace(/```json|```/g,'').trim();let res={};try{res=JSON.parse(text);}catch(e){res={clinical:5,cultural:5,advocacy:5,alignment:5,community:5,ecosystem:5,coi:'',caution:'',asset:'',summary:'Unable to fully research. Manual review recommended.',recommend:false};}document.getElementById('nomThink').classList.remove('on');const scores={clinical:res.clinical||5,cultural:res.cultural||5,advocacy:res.advocacy||5,alignment:res.alignment||5,community:res.community||5,ecosystem:res.ecosystem||5};const c=comp(scores);const pass=c>=5.5;const cls=pass?'pass':c>=4?'pend':'fail';pendingNom={name,digital:false,role:spec||'Practitioner',location:loc||'Unknown',scores,coi:res.coi||'',caution:res.caution||'',asset:res.asset||'',assetNotes:res.asset||'',notes:`Nominated by: ${src||'Anonymous'}. ${ctx||''}`.trim()};document.getElementById('nomSG').innerHTML=DIMS.map(d=>{const v=scores[d.key]||5;return`<div class="nd"><div class="ndl">${d.label.split(' ')[0]}</div><div class="ndv" style="color:${v>=7?'#1A5C3A':v>=5.5?'#7A5000':'#A32D2D'}">${v}</div></div>`;}).join('');const cEl=document.getElementById('nomC');cEl.className='nc '+cls;document.getElementById('nomCL').textContent=pass?'Qualifies for Dream Team review (5.5+)':'Below qualification threshold';const cvEl=document.getElementById('nomCV');cvEl.className='ncv '+cls;cvEl.textContent=c.toFixed(1)+'/10';document.getElementById('nomRisk').innerHTML=(res.coi||res.caution)?`<div style="background:#FCEBEB;border:0.5px solid #F09595;border-radius:8px;padding:8px 10px;margin-bottom:7px;font-size:11px;color:#791F1F;line-height:1.6"><strong>Risk flags:</strong>${res.coi?`<br>⚑ COI: ${res.coi}`:''}${res.caution?`<br>⚠ Caution: ${res.caution}`:''}</div>`:'';document.getElementById('nomSum').textContent=res.summary||'';document.getElementById('nomLumen').innerHTML=pass?`<div class="lumen">★ Lumen Reward — nomination queued for Dream Team review · Lumen credit pending Wyoming DAO LLC activation</div>`:'';document.getElementById('nomActs').innerHTML=pass?`<button class="lg-btn p" onclick="addNom()">Add to registry</button><button class="lg-btn" onclick="clearNom()">Discard</button>`:`<button class="lg-btn" onclick="addNomAny()">Add as pending</button><button class="lg-btn" onclick="clearNom()">Discard</button>`;document.getElementById('nomResult').classList.add('open');}catch(e){document.getElementById('nomThink').classList.remove('on');document.getElementById('nomSum').textContent='Equilibrium unavailable.';document.getElementById('nomResult').classList.add('open');}}
+function addNom(){if(!pendingNom)return;practitioners.push({...pendingNom,id:'nom'+Date.now(),tier:'nominated',pod:activePod==='all'?'flourish':activePod,status:'pending'});save();render();clearNom();['nom_name','nom_spec','nom_loc','nom_src','nom_ctx'].forEach(id=>{document.getElementById(id).value='';});}
+function addNomAny(){addNom();}
+function buildSliders(){document.getElementById('rubricSliders').innerHTML=DIMS.map(d=>`<div class="sr"><span style="font-size:11px;color:var(--em)">${d.label}</span><input type="range" min="1" max="10" step="1" value="5" id="sl_${d.key}" oninput="updateComp()"><span style="font-size:11px;font-weight:500;text-align:right;min-width:16px" id="sv_${d.key}">5</span></div>`).join('');}
+function updateComp(){const sc={};DIMS.forEach(d=>{const v=parseInt(document.getElementById('sl_'+d.key).value)||5;document.getElementById('sv_'+d.key).textContent=v;sc[d.key]=v;});const c=comp(sc);const el=document.getElementById('compDisp');el.textContent=c.toFixed(1)+'/10';el.style.color=c>=5.5?'#1A5C3A':'#A32D2D';}
+function openAddModal(){if(!adminUnlocked)return;editingId=null;document.getElementById('modalTitle').textContent='Add practitioner';document.getElementById('saveBtn').textContent='Save';['name','role','location','contact','asset','coi','caution','asn','notes','photo'].forEach(f=>{const el=document.getElementById('f_'+f);if(el)el.value='';});document.getElementById('f_tier').value='community';document.getElementById('f_pod').value=activePod==='all'?'flourish':activePod;document.getElementById('f_status').value='auto';document.getElementById('f_digital').value='no';buildSliders();DIMS.forEach(d=>{document.getElementById('sl_'+d.key).value=5;document.getElementById('sv_'+d.key).textContent=5;});updateComp();document.getElementById('modalBg').classList.add('open');}
+function editP(id){if(!adminUnlocked)return;const p=practitioners.find(x=>x.id===id);if(!p)return;editingId=id;document.getElementById('modalTitle').textContent='Edit practitioner';document.getElementById('saveBtn').textContent='Update';document.getElementById('f_name').value=p.name;document.getElementById('f_role').value=p.role;document.getElementById('f_location').value=p.location;document.getElementById('f_contact').value=p.contact||'';document.getElementById('f_tier').value=p.tier;document.getElementById('f_pod').value=p.pod;document.getElementById('f_status').value=p.status;document.getElementById('f_notes').value=p.notes||'';document.getElementById('f_asset').value=p.asset||'';document.getElementById('f_coi').value=p.coi||'';document.getElementById('f_caution').value=p.caution||'';document.getElementById('f_asn').value=p.assetNotes||'';document.getElementById('f_digital').value=p.digital?'yes':'no';document.getElementById('f_photo').value=p.photo||'';buildSliders();DIMS.forEach(d=>{const v=p.scores[d.key]||5;document.getElementById('sl_'+d.key).value=v;document.getElementById('sv_'+d.key).textContent=v;});updateComp();document.getElementById('modalBg').classList.add('open');}
+function closeModal(){document.getElementById('modalBg').classList.remove('open');editingId=null;}
+function saveP(){const name=document.getElementById('f_name').value.trim();if(!name)return;const sc={};DIMS.forEach(d=>{sc[d.key]=parseInt(document.getElementById('sl_'+d.key).value)||5;});const rec={id:editingId||'c'+Date.now(),name,digital:document.getElementById('f_digital').value==='yes',role:document.getElementById('f_role').value.trim(),location:document.getElementById('f_location').value.trim(),tier:document.getElementById('f_tier').value,pod:document.getElementById('f_pod').value,contact:document.getElementById('f_contact').value.trim(),status:document.getElementById('f_status').value,asset:document.getElementById('f_asset').value.trim(),coi:document.getElementById('f_coi').value.trim(),caution:document.getElementById('f_caution').value.trim(),assetNotes:document.getElementById('f_asn').value.trim(),photo:document.getElementById('f_photo').value.trim(),scores:sc,notes:document.getElementById('f_notes').value.trim()};if(editingId){const i=practitioners.findIndex(x=>x.id===editingId);if(i>=0)practitioners[i]=rec;}else{practitioners.push(rec);}save();render();closeModal();}
+function vetoP(id){if(!adminUnlocked)return;const p=practitioners.find(x=>x.id===id);if(p){p.status='vetoed';save();render();}}
+function unVeto(id){if(!adminUnlocked)return;const p=practitioners.find(x=>x.id===id);if(p){p.status='auto';save();render();}}
+function delP(id){if(!adminUnlocked)return;if(!confirm('Remove this asset from the directory?'))return;practitioners=practitioners.filter(x=>x.id!==id);save();render();}
+function buildWeightRows(){const tot=Object.values(weights).reduce((a,b)=>a+Number(b),0)||1;document.getElementById('weightRows').innerHTML=DIMS.map(d=>`<div class="wr"><span class="wl">${d.label}</span><input type="number" class="wi" min="0" max="10" step="0.5" value="${weights[d.key]}" id="w_${d.key}" oninput="updateWP()"><span class="wp" id="wp_${d.key}">${Math.round((Number(weights[d.key])/tot)*100)}%</span></div>`).join('');}
+function updateWP(){const tot=DIMS.reduce((a,d)=>a+Number(document.getElementById('w_'+d.key).value||0),0)||1;DIMS.forEach(d=>{const v=Number(document.getElementById('w_'+d.key).value||0);document.getElementById('wp_'+d.key).textContent=Math.round((v/tot)*100)+'%';});}
+function resetW(){DIMS.forEach(d=>{weights[d.key]=1;});buildWeightRows();save();}
+function saveW(){DIMS.forEach(d=>{weights[d.key]=Number(document.getElementById('w_'+d.key).value)||1;});save();render();document.getElementById('rubricBody').classList.remove('open');document.getElementById('rubricIcon').textContent='Show ▾';}
+function toggleRubric(){if(!adminUnlocked)return;const w=document.getElementById('rubricWrap');w.classList.toggle('open');if(w.classList.contains('open')){document.getElementById('rubricBody').classList.add('open');buildWeightRows();}}
+function toggleRubricBody(){const b=document.getElementById('rubricBody');const icon=document.getElementById('rubricIcon');const open=b.classList.toggle('open');icon.textContent=open?'Hide ▴':'Show ▾';if(open)buildWeightRows();}
+function exportCSV(){if(!adminUnlocked)return;const h=['Name','Digital','Role','Location','Tier','Pod','Status','Composite','Clinical','Cultural','Advocacy','Alignment','Community','Ecosystem','Asset','COI','Caution','Contact','Notes'];const rows=practitioners.map(p=>{const st=getSt(p);const sc=st==='internal'?'Internal':comp(p.scores).toFixed(1);return[p.name,p.digital?'Yes':'No',p.role,p.location,p.tier,p.pod,st,sc,p.scores.clinical,p.scores.cultural,p.scores.advocacy,p.scores.alignment,p.scores.community,p.scores.ecosystem,p.asset||'',p.coi||'',p.caution||'',p.contact||'',p.notes||''].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',');});const csv=[h.join(','),...rows].join('\n');const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='GlassHaus_Directory_'+new Date().toISOString().slice(0,10)+'.csv';a.click();URL.revokeObjectURL(url);}
+load();render();
+</script>
+</body>
+</html>
