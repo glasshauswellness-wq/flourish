@@ -596,12 +596,20 @@ body {
     <a href="https://flourish.glasshauswellness.com" class="dwp-cta">Create Your Passport — Free →</a>
   </div>
 
-  <button class="download-btn" onclick="downloadSummary()">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
-    </svg>
-    Download / Print My Map
-  </button>
+  <div style="display:flex;gap:.75rem;flex-wrap:wrap;justify-content:center;margin-bottom:.25rem">
+    <button class="download-btn" onclick="downloadSummary()" style="margin-bottom:0">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+      </svg>
+      Download / Print My Map
+    </button>
+    <button class="download-btn" id="gen-img-btn" onclick="generateMapImage()" style="margin-bottom:0;background:linear-gradient(135deg,rgba(107,79,168,0.18),rgba(155,127,212,0.08));border-color:rgba(155,127,212,0.45);color:var(--violet-soft)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+      </svg>
+      Generate Map Image
+    </button>
+  </div>
 
   <div class="summary-card">
     <div class="summary-title">For your next doctor's appointment</div>
@@ -858,6 +866,247 @@ flourish.glasshauswellness.com`;
   a.download = 'Symptom-Sovereignty-Map-' + new Date().toISOString().split('T')[0] + '.txt';
   a.click();
   showToast('Map downloaded');
+}
+
+async function generateMapImage() {
+  const btn = document.getElementById('gen-img-btn');
+  btn.disabled = true;
+  btn.textContent = 'Generating…';
+
+  await document.fonts.ready;
+
+  const W = 1280, H = 720;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  const SYS_COLORS = {
+    vasomotor:'#C4637A', neurological:'#9B7FD4', psychological:'#C47A35',
+    sleep:'#4A7AB5', musculo:'#7A5C42', reproductive:'#3A8A7E',
+    metabolic:'#4A7A5C', skin:'#B8956A'
+  };
+  const INT_COLORS = { 1:'#4A7A5C', 2:'#C47A35', 3:'#C4637A' };
+  const INT_LABELS = { 1:'mild', 2:'moderate', 3:'significant' };
+
+  // Background
+  ctx.fillStyle = '#1A1225';
+  ctx.fillRect(0, 0, W, H);
+  const bgGrad = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, 560);
+  bgGrad.addColorStop(0, 'rgba(107,79,168,0.14)');
+  bgGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  // Header tint
+  ctx.fillStyle = 'rgba(155,127,212,0.07)';
+  ctx.fillRect(0, 0, W, 96);
+
+  // Title
+  ctx.fillStyle = '#FAF7F2';
+  ctx.textAlign = 'center';
+  ctx.font = '500 38px "Cormorant Garamond",Georgia,serif';
+  ctx.fillText('Your Sovereignty Map', W/2, 52);
+  ctx.fillStyle = 'rgba(255,255,255,0.38)';
+  ctx.font = '300 13px "DM Sans",Arial,sans-serif';
+  ctx.fillText("Your data. Your language. Your body\u2019s intelligence \u2014 organized and legible.", W/2, 76);
+
+  // Separator
+  ctx.strokeStyle = 'rgba(155,127,212,0.22)';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath(); ctx.moveTo(80,93); ctx.lineTo(W-80,93); ctx.stroke();
+
+  // Build grouped data
+  const grouped = {};
+  Object.entries(state.selected).forEach(([id, {sysKey, name}]) => {
+    if (!grouped[sysKey]) grouped[sysKey] = [];
+    grouped[sysKey].push({ name, intensity: state.intensity[id] || 0 });
+  });
+  const totalSelected = Object.keys(state.selected).length;
+  const systemKeys = Object.keys(SYSTEMS);
+  const validSystems = systemKeys.filter(k => grouped[k] && grouped[k].length > 0);
+
+  // Donut chart
+  const cx = W/2, cy = 358;
+  const outerR = 136, innerR = 84;
+
+  if (validSystems.length > 0) {
+    const gap = 0.032;
+    const gapTotal = gap * validSystems.length;
+    const available = Math.PI * 2 - gapTotal;
+    const totalCount = validSystems.reduce((sum, k) => sum + grouped[k].length, 0);
+    let startAngle = -Math.PI / 2;
+    validSystems.forEach(sysKey => {
+      const slice = (grouped[sysKey].length / totalCount) * available;
+      ctx.beginPath();
+      ctx.arc(cx, cy, outerR, startAngle, startAngle + slice);
+      ctx.arc(cx, cy, innerR, startAngle + slice, startAngle, true);
+      ctx.closePath();
+      ctx.fillStyle = SYS_COLORS[sysKey] || '#9B7FD4';
+      ctx.fill();
+      startAngle += slice + gap;
+    });
+  } else {
+    ctx.beginPath();
+    ctx.arc(cx, cy, outerR, 0, Math.PI*2);
+    ctx.arc(cx, cy, innerR, 0, Math.PI*2, true);
+    ctx.fillStyle = 'rgba(155,127,212,0.1)';
+    ctx.fill();
+  }
+
+  // Inner circle fill
+  const ig = ctx.createRadialGradient(cx, cy, 0, cx, cy, innerR);
+  ig.addColorStop(0, '#2D1F3D'); ig.addColorStop(1, '#1D1430');
+  ctx.beginPath(); ctx.arc(cx, cy, innerR - 1, 0, Math.PI*2);
+  ctx.fillStyle = ig; ctx.fill();
+
+  // Center text
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(255,255,255,0.42)';
+  ctx.font = '300 11px "DM Sans",Arial,sans-serif';
+  ctx.fillText('Your map:', cx, cy - 22);
+  ctx.fillStyle = '#C4ADEA';
+  ctx.font = '500 44px "Cormorant Garamond",Georgia,serif';
+  ctx.fillText(String(totalSelected), cx, cy + 18);
+  ctx.fillStyle = 'rgba(255,255,255,0.42)';
+  ctx.font = '300 11px "DM Sans",Arial,sans-serif';
+  ctx.fillText('signals identified', cx, cy + 40);
+
+  // Rounded rect helper
+  function rr(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x+r, y);
+    ctx.lineTo(x+w-r, y);
+    ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+    ctx.lineTo(x+w, y+h-r);
+    ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+    ctx.lineTo(x+r, y+h);
+    ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+    ctx.lineTo(x, y+r);
+    ctx.quadraticCurveTo(x, y, x+r, y);
+    ctx.closePath();
+  }
+
+  // LEFT column: right edge at cx - outerR - 55, text right-aligned
+  const LX = cx - outerR - 58;
+  // RIGHT column: left edge at cx + outerR + 55, text left-aligned
+  const RX = cx + outerR + 58;
+  const START_Y = 112;
+
+  // Draw left system (text right-aligned toward donut)
+  function drawLeft(sysKey, y) {
+    const items = grouped[sysKey]; if (!items || !items.length) return y;
+    const color = SYS_COLORS[sysKey];
+    // Dot
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.arc(LX + 10, y + 1, 4.5, 0, Math.PI*2); ctx.fill();
+    // Label
+    ctx.fillStyle = 'rgba(255,255,255,0.86)';
+    ctx.font = '500 12px "DM Sans",Arial,sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(SYSTEMS[sysKey].label, LX + 19, y + 5);
+    y += 19;
+    items.forEach(item => {
+      ctx.font = '300 11px "DM Sans",Arial,sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,0.52)';
+      ctx.textAlign = 'left';
+      const txt = '\u2022 ' + item.name;
+      ctx.fillText(txt, LX + 19, y + 4);
+      const il = item.intensity, ic = INT_COLORS[il], ib = INT_LABELS[il];
+      if (ib && ic) {
+        const tw = ctx.measureText(txt).width;
+        ctx.font = '400 9px "DM Sans",Arial,sans-serif';
+        const bw = ctx.measureText(ib).width + 10, bh = 13;
+        rr(LX + 21 + tw, y - 6, bw, bh, 4);
+        ctx.fillStyle = ic + '2E'; ctx.fill();
+        ctx.fillStyle = ic;
+        ctx.fillText(ib, LX + 21 + tw + 5, y + 4);
+      }
+      y += 17;
+    });
+    return y + 9;
+  }
+
+  // Draw right system (text left-aligned from donut)
+  function drawRight(sysKey, y) {
+    const items = grouped[sysKey]; if (!items || !items.length) return y;
+    const color = SYS_COLORS[sysKey];
+    // Dot
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.arc(RX - 10, y + 1, 4.5, 0, Math.PI*2); ctx.fill();
+    // Label (right-align to dot)
+    ctx.fillStyle = 'rgba(255,255,255,0.86)';
+    ctx.font = '500 12px "DM Sans",Arial,sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(SYSTEMS[sysKey].label, RX - 19, y + 5);
+    y += 19;
+    items.forEach(item => {
+      ctx.font = '300 11px "DM Sans",Arial,sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,0.52)';
+      ctx.textAlign = 'right';
+      const txt = item.name + ' \u2022';
+      ctx.fillText(txt, RX - 19, y + 4);
+      const il = item.intensity, ic = INT_COLORS[il], ib = INT_LABELS[il];
+      if (ib && ic) {
+        const tw = ctx.measureText(txt).width;
+        ctx.font = '400 9px "DM Sans",Arial,sans-serif';
+        const bw = ctx.measureText(ib).width + 10, bh = 13;
+        const bx = RX - 21 - tw - bw;
+        rr(bx, y - 6, bw, bh, 4);
+        ctx.fillStyle = ic + '2E'; ctx.fill();
+        ctx.fillStyle = ic;
+        ctx.fillText(ib, bx + 5, y + 4);
+      }
+      y += 17;
+    });
+    return y + 9;
+  }
+
+  let ly = START_Y;
+  ['musculo','vasomotor','neurological'].forEach(k => { ly = drawLeft(k, ly); });
+
+  let ry = START_Y;
+  ['psychological','sleep','reproductive','metabolic','skin'].forEach(k => { ry = drawRight(k, ry); });
+
+  // Season name
+  const seasonName = (document.getElementById('season-name').value || '').trim();
+  if (seasonName) {
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(255,255,255,0.28)';
+    ctx.font = '300 11px "DM Sans",Arial,sans-serif';
+    ctx.fillText('You named this season:', cx, cy + 72);
+    ctx.fillStyle = '#C4ADEA';
+    ctx.font = 'italic 500 22px "Cormorant Garamond",Georgia,serif';
+    ctx.fillText('\u201C' + seasonName + '\u201D', cx, cy + 96);
+  }
+
+  // Subtle connector lines
+  ctx.strokeStyle = 'rgba(155,127,212,0.1)';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath(); ctx.moveTo(cx - outerR - 3, cy); ctx.lineTo(LX + 8, cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx + outerR + 3, cy); ctx.lineTo(RX - 8, cy); ctx.stroke();
+
+  // Bottom branding bar
+  ctx.fillStyle = 'rgba(155,127,212,0.07)';
+  ctx.fillRect(0, H - 36, W, 36);
+  ctx.strokeStyle = 'rgba(155,127,212,0.15)';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath(); ctx.moveTo(80, H-36); ctx.lineTo(W-80, H-36); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,0.18)';
+  ctx.font = '400 10px "DM Sans",Arial,sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('FLOURISH \u00B7 A GLASSHAUS POD \u00B7 flourish.glasshauswellness.com', cx, H - 14);
+
+  // Trigger download
+  const a = document.createElement('a');
+  a.download = 'Sovereignty-Map-' + new Date().toISOString().split('T')[0] + '.png';
+  a.href = canvas.toDataURL('image/png');
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  showToast('Map image downloading\u2026');
+  btn.disabled = false;
+  btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Generate Map Image`;
 }
 
 initGrids();
