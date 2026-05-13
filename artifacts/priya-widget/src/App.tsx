@@ -170,9 +170,11 @@ export default function App() {
   const [textInput, setTextInput] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [passportSynced, setPassportSynced] = useState(false);
+  const [conversationLog, setConversationLog] = useState<{ speaker: "user" | "priya"; text: string }[]>([]);
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const hasStartedRef = useRef(false);
+  const transcriptScrollRef = useRef<HTMLDivElement | null>(null);
   const currentAudioSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const passportDataRef = useRef<PassportEntry | null>(null);
   const isProcessingRef = useRef(false);
@@ -354,6 +356,7 @@ export default function App() {
     const wasHandsFree = isHandsFreeRef.current;
     stopListening();
     sessionTranscriptRef.current.push(`You: ${text}`);
+    setConversationLog(prev => [...prev, { speaker: "user", text }]);
     historyRef.current.push({ role: "user", parts: [{ text }] });
     updateStatus("Reflecting...");
     try {
@@ -370,6 +373,7 @@ export default function App() {
       );
       if (fullText) {
         sessionTranscriptRef.current.push(`Priya: ${fullText}`);
+        setConversationLog(prev => [...prev, { speaker: "priya", text: fullText }]);
         historyRef.current.push({ role: "model", parts: [{ text: fullText }] });
         setShowActions(true);
         updateStatus("Illuminating...");
@@ -411,6 +415,7 @@ export default function App() {
     const greeting =
       "I have been waiting for you. How does your body feel today, and where does your spirit sit within it?";
     displaySpeech(greeting);
+    setConversationLog([{ speaker: "priya", text: greeting }]);
     historyRef.current.push({ role: "model", parts: [{ text: greeting }] });
     await speakText(greeting);
     if (isHandsFreeRef.current) startListening();
@@ -472,6 +477,13 @@ export default function App() {
       updateStatus(isHandsFreeRef.current ? "I am listening" : "Ready");
     }
   }, [updateStatus]);
+
+  // Auto-scroll transcript to bottom on new messages or live interim text
+  useEffect(() => {
+    if (transcriptScrollRef.current) {
+      transcriptScrollRef.current.scrollTop = transcriptScrollRef.current.scrollHeight;
+    }
+  }, [conversationLog, transcript]);
 
   useEffect(() => {
     if (appState !== "active") return;
@@ -588,13 +600,23 @@ export default function App() {
                 <div className="bars-orbit" ref={barsContainerRef} />
               </div>
 
-              <div className="transcript-area">
-                <p
-                  className={`transcript-text serif${transcriptSource === "user" ? " transcript-user" : ""}`}
-                  style={{ opacity: transcriptOpacity, transition: "opacity 0.7s ease" }}
-                >
-                  {transcriptSource === "user" ? `\u201c${transcript}\u201d` : transcript}
-                </p>
+              <div className="transcript-area" ref={transcriptScrollRef}>
+                <div className="convo-log">
+                  {conversationLog.map((msg, i) => (
+                    <div key={i} className={`convo-msg convo-${msg.speaker}`}>
+                      <span className="convo-label">{msg.speaker === "user" ? "You" : "Priya"}</span>
+                      <p className="convo-text serif">{msg.text}</p>
+                    </div>
+                  ))}
+                  {transcript && transcriptOpacity > 0 && (
+                    <div className={`convo-msg convo-${transcriptSource} convo-interim`}>
+                      <span className="convo-label">{transcriptSource === "user" ? "You" : "Priya"}</span>
+                      <p className="convo-text serif" style={{ opacity: transcriptOpacity * 0.55, transition: "opacity 0.7s ease" }}>
+                        {transcriptSource === "user" ? `\u201c${transcript}\u201d` : transcript}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
 
             </div>
@@ -644,6 +666,16 @@ export default function App() {
                   <div className="session-dropdown" onClick={() => setShowMenu(false)}>
                     <button className="dropdown-item" onClick={syncToPassport}>
                       ✨ Sync to Passport
+                    </button>
+                    <button
+                      className="dropdown-item"
+                      onClick={() => {
+                        const text = sessionTranscriptRef.current.join("\n");
+                        navigator.clipboard?.writeText(text).catch(() => {});
+                      }}
+                      disabled={sessionTranscriptRef.current.length === 0}
+                    >
+                      ⎘ Copy Transcript
                     </button>
                     <button
                       className="dropdown-item"
