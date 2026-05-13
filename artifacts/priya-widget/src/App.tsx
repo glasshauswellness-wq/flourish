@@ -431,11 +431,15 @@ export default function App() {
 
   const startSession = useCallback(async () => {
     unlockAudio();
-    // Request mic permission once up front so Chrome never re-prompts on each
-    // SpeechRecognition instance. Keep the stream alive for the whole session.
+    // Request mic permission once up front so Chrome caches the grant and never
+    // re-prompts on each SpeechRecognition instance. Stop tracks immediately —
+    // keeping the stream alive competes with SpeechRecognition for mic access
+    // and causes the cycling on/off loop.
     if (!micStreamRef.current && navigator.mediaDevices?.getUserMedia) {
       try {
-        micStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach(t => t.stop());
+        micStreamRef.current = stream; // mark as done (tracks stopped, permission cached)
       } catch {
         // Denied or unavailable — SpeechRecognition will handle gracefully
       }
