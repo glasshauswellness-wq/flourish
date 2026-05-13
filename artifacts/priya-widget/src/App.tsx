@@ -250,45 +250,12 @@ export default function App() {
         };
         source.start(0);
 
-        // Interrupt watcher — listens for the user's voice during Priya's speech.
-        // Delayed 700ms so echo cancellation stabilises and Priya's own voice
-        // doesn't trigger the interrupt watcher through the mic.
-        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SR && isHandsFreeRef.current && !isTypingRef.current) {
-          setTimeout(() => {
-            if (!isSpeakingRef.current) return; // audio already ended naturally
-            const interruptRec = new SR();
-            interruptRec.continuous = false;
-            interruptRec.interimResults = true;
-            interruptRec.lang = "en-US";
-
-            interruptRec.onresult = () => {
-              // User spoke — cut Priya's audio immediately
-              isSpeakingRef.current = false;
-              setVoiceActive(false);
-              updateStatus("I'm listening…");
-              try { source.stop(); } catch {}
-              try { interruptRec.abort(); } catch {}
-              interruptRecRef.current = null;
-            };
-
-            interruptRec.onerror = () => { interruptRecRef.current = null; };
-            interruptRec.onend = () => { interruptRecRef.current = null; };
-
-            interruptRecRef.current = interruptRec;
-            try { interruptRec.start(); } catch {}
-          }, 700);
-        }
+        // Barge-in disabled: echo from Priya's own audio triggers false positives
+        // in the iframe context. Users can tap the pause button to interrupt.
       });
     } catch {
       updateStatus("Voice resting — type to continue");
       setVoiceActive(false);
-    }
-
-    // Stop interrupt watcher if audio ended naturally (no interrupt)
-    if (interruptRecRef.current) {
-      try { interruptRecRef.current.abort(); } catch {}
-      interruptRecRef.current = null;
     }
 
     isSpeakingRef.current = false;
