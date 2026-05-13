@@ -391,6 +391,9 @@ export default function App() {
     } finally {
       isProcessingRef.current = false;
       isTypingRef.current = false;
+      // Clear interim transcript now that the exchange is in the log
+      setTranscript("");
+      setTranscriptOpacity(0);
       // Restore to whatever hands-free state the user had before this exchange.
       // Do NOT force hands-free on — respect pause and text-mode choices.
       if (wasHandsFree && isHandsFreeRef.current) {
@@ -418,6 +421,8 @@ export default function App() {
     setConversationLog([{ speaker: "priya", text: greeting }]);
     historyRef.current.push({ role: "model", parts: [{ text: greeting }] });
     await speakText(greeting);
+    setTranscript("");
+    setTranscriptOpacity(0);
     if (isHandsFreeRef.current) startListening();
   }, [unlockAudio, displaySpeech, speakText, startListening]);
 
