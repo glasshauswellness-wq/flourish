@@ -172,8 +172,7 @@ export default function App() {
   const [passportSynced, setPassportSynced] = useState(false);
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const interruptRecRef = useRef<SpeechRecognition | null>(null);
-  const micStreamRef = useRef<MediaStream | null>(null);
+  const hasStartedRef = useRef(false);
   const currentAudioSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const passportDataRef = useRef<PassportEntry | null>(null);
   const isProcessingRef = useRef(false);
@@ -402,20 +401,9 @@ export default function App() {
   handleVoiceEndRef.current = handleVoiceEnd;
 
   const startSession = useCallback(async () => {
+    if (hasStartedRef.current) return;
+    hasStartedRef.current = true;
     unlockAudio();
-    // Request mic permission once up front so Chrome caches the grant and never
-    // re-prompts on each SpeechRecognition instance. Stop tracks immediately —
-    // keeping the stream alive competes with SpeechRecognition for mic access
-    // and causes the cycling on/off loop.
-    if (!micStreamRef.current && navigator.mediaDevices?.getUserMedia) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        stream.getTracks().forEach(t => t.stop());
-        micStreamRef.current = stream; // mark as done (tracks stopped, permission cached)
-      } catch {
-        // Denied or unavailable — SpeechRecognition will handle gracefully
-      }
-    }
     setAppState("active");
     setTimeout(() => {
       if (barsContainerRef.current) createBars(barsContainerRef.current);
