@@ -281,7 +281,8 @@ export default function App() {
         }
       });
     } catch {
-      // Voice unavailable — conversation continues silently
+      updateStatus("Voice resting — type to continue");
+      setVoiceActive(false);
     }
 
     // Stop interrupt watcher if audio ended naturally (no interrupt)
@@ -333,9 +334,9 @@ export default function App() {
     rec.onend = () => {
       recognitionRef.current = null;
       isListeningRef.current = false;
-      setIsListening(false);
       const text = capturedText.trim();
       if (text && !isSpeakingRef.current && !isProcessingRef.current) {
+        setIsListening(false);
         handleVoiceEndRef.current(text);
       } else if (
         isHandsFreeRef.current &&
@@ -343,15 +344,16 @@ export default function App() {
         !isProcessingRef.current &&
         !isTypingRef.current
       ) {
-        // Restart — covers no-speech timeouts, page visibility changes, interruptions
+        // Keep bars lit during the brief restart gap — avoids visible flicker
         setTimeout(() => startListeningRef.current(), 400);
+      } else {
+        setIsListening(false);
       }
     };
 
     rec.onerror = (event: SpeechRecognitionErrorEvent) => {
       recognitionRef.current = null;
       isListeningRef.current = false;
-      setIsListening(false);
       const err = event.error;
       // Don't retry if the user explicitly denied microphone
       const permanent = err === "not-allowed" || err === "service-not-allowed";
@@ -362,7 +364,10 @@ export default function App() {
         !isProcessingRef.current &&
         !isTypingRef.current
       ) {
+        // Keep bars lit during restart gap
         setTimeout(() => startListeningRef.current(), 600);
+      } else {
+        setIsListening(false);
       }
     };
 

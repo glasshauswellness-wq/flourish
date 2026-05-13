@@ -6,7 +6,9 @@ const router: IRouter = Router();
 const GEMINI_TTS_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent";
 
-const anthropic = new Anthropic({ apiKey: process.env["ANTHROPIC_API_KEY"] });
+const anthropic = new Anthropic({
+  apiKey: process.env["ANTHROPIC_API_KEY"] ?? process.env["anthropic"],
+});
 
 const SYSTEM_PROMPT = `================================================================
 PRIYA — PRE-CHAT AGENT INSTRUCTIONS
