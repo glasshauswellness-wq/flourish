@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flourish — Welcome</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,400&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  background: #1A1225;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: 'DM Sans', sans-serif;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+body.visible { opacity: 1; }
+body.fade-out { opacity: 0; transition: opacity 0.3s ease; }
+
+.interstitial {
+  text-align: center;
+  padding: 2rem;
+  position: relative;
+}
+
+.wordmark {
+  display: block;
+  font-family: 'Cinzel', serif;
+  font-size: clamp(2rem, 5vw, 3rem);
+  letter-spacing: 0.22em;
+  color: hsl(330, 30%, 55%);
+  margin-bottom: 2rem;
+  text-transform: uppercase;
+}
+
+.welcome {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.5rem, 3.5vw, 2rem);
+  font-weight: 400;
+  color: #C9A84C;
+  margin-bottom: 0.65rem;
+  line-height: 1.25;
+}
+
+.tagline {
+  font-size: 0.92rem;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.05em;
+}
+
+.glow {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 420px; height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(155,127,212,0.12) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+}
+</style>
+</head>
+<body>
+<div class="glow"></div>
+<div class="interstitial">
+  <span class="wordmark">Flourish</span>
+  <p class="welcome" id="welcome-msg">Welcome back.</p>
+  <p class="tagline">Your Flourish sanctuary is ready.</p>
+</div>
+
+<script>
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  var ost  = params.get('ost');
+  var name = (params.get('name') || '').trim();
+
+  if (!ost) {
+    window.location.replace('/');
+    return;
+  }
+
+  try {
+    localStorage.setItem('vita_session', JSON.stringify({
+      ost:  ost,
+      name: name,
+      pod:  'flourish',
+      ts:   Date.now()
+    }));
+  } catch (e) {}
+
+  if (name) {
+    document.getElementById('welcome-msg').textContent = 'Welcome back, ' + name + '.';
+  }
+
+  requestAnimationFrame(function () {
+    document.body.classList.add('visible');
+  });
+
+  setTimeout(function () {
+    document.body.classList.add('fade-out');
+    setTimeout(function () {
+      window.location.replace('/');
+    }, 320);
+  }, 1500);
+}());
+</script>
+</body>
+</html>

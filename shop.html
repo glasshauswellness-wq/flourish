@@ -690,6 +690,7 @@
       <span style="font-family:'DM Sans',sans-serif;font-size:0.62rem;letter-spacing:0.2em;color:#4a3570;font-weight:300;text-transform:none;">a Glasshaus Pod</span>
     </div>
   </a>
+  <span id="vita-greeting" style="display:none;position:relative;z-index:2;font-family:'DM Sans',sans-serif;font-size:0.72rem;font-weight:400;color:rgba(45,26,74,0.72);letter-spacing:0.03em;white-space:nowrap;"></span>
   <ul class="nav-links" style="position:relative;z-index:2;">
     <li><a href="index.html#priya">Your Guide</a></li>
     <li><a href="index.html">The Journey</a></li>
@@ -704,6 +705,17 @@
   document.querySelectorAll('.nav-links a').forEach(function(a){
     a.addEventListener('click', function(){ document.querySelector('nav').classList.remove('nav-open'); });
   });
+  (function useVitaSession() {
+    try {
+      var raw = localStorage.getItem('vita_session');
+      if (!raw) return;
+      var s = JSON.parse(raw);
+      if (s && s.pod === 'flourish' && s.name) {
+        var el = document.getElementById('vita-greeting');
+        if (el) { el.textContent = 'Welcome back, ' + s.name; el.style.display = 'inline'; }
+      }
+    } catch (e) {}
+  })();
 </script>
 
 <!-- ── HERO ── -->

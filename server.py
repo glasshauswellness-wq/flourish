@@ -434,6 +434,10 @@ class FlourishHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         self.headers.__delitem__("If-Modified-Since")
         self.headers.__delitem__("If-None-Match")
+        # Route /auth/vita (with or without query string) to auth/vita.html
+        path_only = self.path.split('?')[0]
+        if path_only == '/auth/vita':
+            self.path = '/auth/vita.html' + (('?' + self.path.split('?')[1]) if '?' in self.path else '')
         super().do_GET()
 
     def do_POST(self):
