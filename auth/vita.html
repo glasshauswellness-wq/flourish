@@ -86,10 +86,14 @@ body.fade-out { opacity: 0; transition: opacity 0.3s ease; }
 
   try {
     localStorage.setItem('vita_session', JSON.stringify({
-      ost:  ost,
-      name: name,
-      pod:  'flourish',
-      ts:   Date.now()
+      ost:           ost,
+      name:          name,
+      pod:           'flourish',
+      established_at: Date.now(),
+      session_start:  Date.now(),
+      spaces_visited: [],
+      last_space:     null,
+      avatar:         null
     }));
   } catch (e) {}
 

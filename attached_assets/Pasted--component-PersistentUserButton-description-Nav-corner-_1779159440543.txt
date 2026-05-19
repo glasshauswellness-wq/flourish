@@ -1,0 +1,72 @@
+{
+  "component": "PersistentUserButton",
+  "description": "Nav corner button — always visible, switches between guest and authenticated state",
+  "session": {
+    "storageKey": "vita_session",
+    "fields": ["ost", "name", "pod", "established_at", "session_start", "spaces_visited", "last_space", "avatar"],
+    "ttlHours": 8,
+    "authCheck": "session exists AND established_at is within TTL"
+  },
+  "states": {
+    "guest": {
+      "trigger": "no valid vita_session in localStorage",
+      "button": {
+        "shape": "rounded-full pill",
+        "contents": ["user-circle-icon", "chevron-down-icon"],
+        "style": "bg-black/5 hover:bg-black/10"
+      },
+      "dropdown": {
+        "header": {
+          "title": "Guest",
+          "subtitle": "Not yet synced"
+        },
+        "items": [
+          {
+            "label": "Your Passport",
+            "icon": "Shield",
+            "href": "/passport"
+          }
+        ]
+      }
+    },
+    "authenticated": {
+      "trigger": "valid vita_session in localStorage",
+      "button": {
+        "shape": "rounded-full pill",
+        "contents": ["avatar-or-user-icon", "member-name-text", "chevron-down-icon"],
+        "avatar": "vita_session.avatar (base64) OR User icon fallback",
+        "nameSource": "vita_session.name",
+        "style": "bg-black/5 hover:bg-black/10"
+      },
+      "dropdown": {
+        "header": {
+          "title": "vita_session.name",
+          "subtitle": "HFHC Member"
+        },
+        "items": [
+          {
+            "label": "Your Passport",
+            "icon": "Shield",
+            "href": "/passport"
+          }
+        ],
+        "footer": [
+          {
+            "label": "Clear Session",
+            "icon": "LogOut",
+            "action": "delete vita_session from localStorage, reload"
+          }
+        ]
+      }
+    }
+  },
+  "behavior": {
+    "clickOutside": "closes dropdown via ref + mousedown listener",
+    "chevronRotation": "180deg when open",
+    "animation": "opacity + y + scale fade-in (duration 150ms)",
+    "navLinks": "close dropdown before navigating",
+    "clearSession": "close dropdown, remove vita_session key, reload page"
+  },
+  "passportRoute": "/passport",
+  "syncRoute": "/auth/vita?ost=KIOSK_ID&name=MEMBER_NAME&pod=POD_CODE"
+}
