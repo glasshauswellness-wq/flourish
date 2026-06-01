@@ -1,0 +1,8 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "uF4m4GwuscLBLD_QUc2U3"
+uri = "file://artifacts/priya-mobile/assets/images/icon.png"
+type = "image"
+title = "priya oracle icon"
