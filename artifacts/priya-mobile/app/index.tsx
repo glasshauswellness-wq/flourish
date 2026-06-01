@@ -109,18 +109,19 @@ function PulseRing({
 
   useEffect(() => {
     if (active) {
+      const nativeDriver = Platform.OS !== "web";
       const loop = Animated.loop(
         Animated.sequence([
           Animated.delay(delay),
           Animated.timing(anim, {
             toValue: 1,
             duration: 2000,
-            useNativeDriver: true,
+            useNativeDriver: nativeDriver,
           }),
           Animated.timing(anim, {
             toValue: 0,
             duration: 0,
-            useNativeDriver: true,
+            useNativeDriver: nativeDriver,
           }),
         ])
       );
@@ -136,7 +137,6 @@ function PulseRing({
 
   return (
     <Animated.View
-      pointerEvents="none"
       style={{
         position: "absolute",
         width: size,
@@ -146,6 +146,7 @@ function PulseRing({
         borderColor: color,
         transform: [{ scale }],
         opacity,
+        pointerEvents: "none",
       }}
     />
   );
@@ -199,17 +200,18 @@ export default function PriyaScreen() {
   }, []);
 
   useEffect(() => {
+    const nd = Platform.OS !== "web";
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(breatheAnim, {
           toValue: 1,
           duration: 6000,
-          useNativeDriver: true,
+          useNativeDriver: nd,
         }),
         Animated.timing(breatheAnim, {
           toValue: 0,
           duration: 6000,
-          useNativeDriver: true,
+          useNativeDriver: nd,
         }),
       ])
     );
@@ -221,7 +223,7 @@ export default function PriyaScreen() {
     Animated.timing(entranceFadeAnim, {
       toValue: 1,
       duration: 1200,
-      useNativeDriver: true,
+      useNativeDriver: Platform.OS !== "web",
     }).start();
   }, []);
 
@@ -339,7 +341,7 @@ export default function PriyaScreen() {
     Animated.timing(activeFadeAnim, {
       toValue: 1,
       duration: 800,
-      useNativeDriver: true,
+      useNativeDriver: Platform.OS !== "web",
     }).start();
 
     const greeting =
@@ -414,7 +416,7 @@ export default function PriyaScreen() {
     Animated.timing(entranceFadeAnim, {
       toValue: 1,
       duration: 600,
-      useNativeDriver: true,
+      useNativeDriver: Platform.OS !== "web",
     }).start();
   }, [stopAudio, entranceFadeAnim]);
 
@@ -447,10 +449,9 @@ export default function PriyaScreen() {
       />
 
       <Animated.View
-        pointerEvents="none"
         style={[
           styles.aura,
-          { transform: [{ scale: auraScale }], opacity: auraOpacity },
+          { transform: [{ scale: auraScale }], opacity: auraOpacity, pointerEvents: "none" },
         ]}
       />
 
