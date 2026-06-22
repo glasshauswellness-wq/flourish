@@ -434,11 +434,23 @@ class FlourishHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         self.headers.__delitem__("If-Modified-Since")
         self.headers.__delitem__("If-None-Match")
-        # Route /auth/vita (with or without query string) to auth/vita.html
         path_only = self.path.split('?')[0]
         if path_only == '/auth/vita':
             self.path = '/auth/vita.html' + (('?' + self.path.split('?')[1]) if '?' in self.path else '')
+        elif path_only == '/api/config':
+            self.handle_config()
+            return
         super().do_GET()
+
+    def handle_config(self):
+        token = os.environ.get('GLASSHAUS_API_TOKEN', '')
+        payload = json.dumps({'portalToken': token}).encode()
+        self.send_response(200)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Content-Length', str(len(payload)))
+        self.end_headers()
+        self.wfile.write(payload)
 
     def do_POST(self):
         if self.path == "/api/chat":

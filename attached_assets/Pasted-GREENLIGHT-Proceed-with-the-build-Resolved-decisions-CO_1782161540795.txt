@@ -1,0 +1,51 @@
+GREENLIGHT — Proceed with the build.
+Resolved decisions:
+
+CORS architecture: env var with hardcoded fallback. ALLOWED_ORIGINS parsed at API server startup, fallback to ['glasshauswellness.com'] if unset.
+Cross-origin auth: shared API token from day one. Use X-Portal-Token header. Store as Replit secret GLASSHAUS_API_TOKEN in BOTH the Flourish project AND the Glasshaus Ecosystem project (same token value). Expose to Flourish's static JS via a small /api/config route in Flourish's server.py.
+API base URL: https://glasshauswellness.com/api — hardcode in assets/js/portal-ping.js with a clearly named constant.
+Failure mode: fire-and-forget, silent in production. Console log in development. Matches existing Glasshaus pattern.
+OST correlation: YES, include visitor_token: session.ost when a vita_session exists in localStorage. Pass null/omit when no session. This is the strategically valuable add — member engagement visibility matters for Phase 2.
+Pages to ping: index.html, shop.html, FL-M01_Symptom_Sovereignty_Map.html. Exclude auth/vita.html (auto-redirects).
+Verification flow: dev preview URL (not the deployment-shielded production URL), incognito session, navigate two or three pages, confirm visits appear in admin dashboard under "Flourish" site filter.
+
+Build approach for the Glasshaus Ecosystem CORS change:
+Write the CORS patch as a paste-ready code block at the end of your delivery report — I'll apply it manually in the Glasshaus Ecosystem project. Don't try to access that project from this session. The patch should include:
+
+The env var parsing (process.env.ALLOWED_ORIGINS?.split(',') with fallback)
+The CORS middleware update (or whatever pattern the API server uses)
+The X-Portal-Token validation on /portal/ping
+The GLASSHAUS_API_TOKEN env var setup (I'll add it to Replit secrets manually)
+Any required CORS preflight (OPTIONS) handling
+
+Build approach for Flourish (this project):
+Execute directly. Create assets/js/portal-ping.js with:
+
+Hardcoded GLASSHAUS_API = 'https://glasshauswellness.com/api'
+Read token from /api/config endpoint (which you also create in server.py)
+Read vita_session.ost from localStorage if present
+Fire POST with { site: "flourish", path, referrer, visitor_token }
+Include X-Portal-Token header
+Fire-and-forget error handling
+
+Add the <script> tag to:
+
+index.html
+shop.html
+FL-M01_Symptom_Sovereignty_Map.html
+
+NOT to:
+
+auth/vita.html
+
+Then update server.py to add /api/config route returning { portalToken: env.GLASSHAUS_API_TOKEN }.
+Sequencing — Flourish-side first, Glasshaus CORS second:
+The agent's flag is correct: ship Flourish-side first, the failure mode is silent, no user impact during the gap. Once Flourish-side is in place and the dev preview confirms it's trying to ping (you'll see console errors about CORS or auth in development), I'll apply the Glasshaus CORS patch and the pings will start succeeding.
+Verification when complete:
+
+Console output from a Flourish dev preview session showing the ping fetch attempt
+The paste-ready Glasshaus CORS patch block
+Confirmation that GLASSHAUS_API_TOKEN Replit secret has been created in the Flourish project (you'll need to give me the value to set)
+A clear "build complete on Flourish side, awaiting Glasshaus CORS update before pings will succeed" status
+
+When the build is reported complete, I'll apply the Glasshaus patch and we'll verify end-to-end.
