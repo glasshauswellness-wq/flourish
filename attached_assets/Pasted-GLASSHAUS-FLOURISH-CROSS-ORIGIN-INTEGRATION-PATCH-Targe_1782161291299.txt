@@ -1,0 +1,347 @@
+GLASSHAUS — FLOURISH CROSS-ORIGIN INTEGRATION PATCH
+Target:        The standalone Flourish Replit project at
+               flourish-nairb1969.replit.app, plus the Glasshaus
+               Ecosystem monorepo's shared API server for CORS
+               configuration
+Purpose:       Extend the unified site-scoped tracking and
+               access control system (just shipped for HFHC) to
+               the Flourish standalone deployment. Flourish lives
+               outside the monorepo, so this is a cross-origin
+               integration, not a same-origin extension.
+Mode:          CONSULTATION FIRST — agent assessment before any
+               code changes
+Status:        PASTE-READY for Replit Agent (TWO REPLIT PROJECTS
+               INVOLVED — Glasshaus Ecosystem AND standalone
+               Flourish)
+Scope:         MINIMAL — portal ping integration only. Access
+               codes, admin pages, and full universe-style
+               gating are explicitly out of scope for this pass.
+
+
+=======================================================================
+SECTION 1 — REPLIT AGENT CONSULTATION PROMPT (PASTE THIS BLOCK)
+=======================================================================
+
+STOP — Do not execute any code, run any migration, or modify any
+file in this turn. Read the entire prompt below, then respond
+ONLY with your assessment. Wait for my explicit greenlight
+before any build action.
+
+This patch involves TWO Replit projects:
+  — Glasshaus Ecosystem (the monorepo you're already familiar
+    with — needs CORS configuration on the shared API server)
+  — The standalone Flourish project at
+    flourish-nairb1969.replit.app (a separate Replit project in
+    my account — needs the usePortalPing hook added)
+
+CONTEXT — WHAT JUST SHIPPED
+
+In the build that just completed, you extended the site-scoped
+tracking system to HFHC. The architecture now is:
+
+  — portal_visits and access_tokens tables both have a
+    site TEXT NOT NULL DEFAULT 'glasshaus' column
+  — /portal/ping accepts a site field, defaults to 'glasshaus'
+    if absent
+  — Admin dashboard has a persistent site selector in AdminNav
+  — Site values currently in use: 'glasshaus' and 'hfhc'
+  — Email notifications include [Site] in the subject line
+
+HFHC integration was easy because HFHC lives in the same
+monorepo and proxies /api requests via the Vite dev proxy
+(same-origin). The usePortalPing hook fires fetch calls to
+"/api/portal/ping" which the proxy routes to the shared API
+server.
+
+CONTEXT — WHY FLOURISH IS DIFFERENT
+
+Flourish is deployed at flourish-nairb1969.replit.app — a
+separate Replit project in my account, NOT in the Glasshaus
+Ecosystem monorepo. This means:
+
+  — Flourish cannot use Vite's proxy pattern to reach /api
+  — A fetch call to "/api/portal/ping" from Flourish would hit
+    Flourish's own backend, not the Glasshaus shared API server
+  — To send pings to the shared API, Flourish must make a
+    cross-origin HTTPS call to the full public URL of the
+    Glasshaus Ecosystem API
+  — The Glasshaus Ecosystem API must be configured to accept
+    CORS requests from the Flourish origin
+
+The Flourish deployment is currently password-protected via
+Replit's deployment shield. That's deployment-level
+authentication, separate from any application-level auth.
+
+THIS PATCH'S SCOPE — MINIMAL
+
+This patch ONLY adds portal visit tracking to Flourish so that
+Flourish traffic appears in the unified admin dashboard at
+glasshauswellness.com/admin under the 'flourish' site filter.
+
+EXPLICITLY OUT OF SCOPE for this pass:
+  — Access code system on Flourish (Flourish currently uses
+    Replit's deployment shield for gating; integrating the
+    Glasshaus invite-code system is a separate, larger task)
+  — Migrating Flourish into the Glasshaus Ecosystem monorepo
+    (potential future architectural decision; not now)
+  — Visitor identity correlation across Flourish and other
+    sites (will happen naturally via shared IP hash, but no
+    code changes needed for this pass)
+  — Practitioner integration changes (Priya remains where she
+    is in the Universe; this pass does not touch her)
+  — Admin pages within Flourish itself (the unified admin
+    stays at glasshauswellness.com/admin)
+  — Any UI/UX changes to Flourish (this is pure instrumentation)
+
+INVESTIGATION TASKS
+
+Before any code changes, please investigate and report:
+
+  Investigation 1 — Flourish current tech stack
+  Connect to or look at the Flourish Replit project at
+  flourish-nairb1969.replit.app. The deployment is password-
+  protected — if you need the password to access the running
+  app, I will provide it. But to inspect the code, you should
+  be able to open the Flourish Replit project in my account
+  directly. Report:
+    — What framework is the Flourish project using (React?
+      Vite? Next.js? Plain HTML?)
+    — Is there a routing system in place, or is it single-page?
+    — Where would the usePortalPing equivalent live?
+    — Any existing analytics/tracking instrumentation that
+      would conflict with new pings?
+
+  Investigation 2 — Glasshaus Ecosystem API CORS configuration
+  Look at artifacts/api-server in the Glasshaus Ecosystem
+  monorepo. Report:
+    — What CORS configuration exists currently?
+    — What origins are currently allowed?
+    — Would adding flourish-nairb1969.replit.app (and a future
+      flourish.glasshauswellness.com) to the allowed origins
+      list require code changes or just environment variable
+      updates?
+    — Are there any auth tokens, session cookies, or other
+      headers being sent on /portal/ping that would create
+      cross-origin complications?
+
+  Investigation 3 — Public URL of the Glasshaus Ecosystem API
+  The Flourish ping needs to know where to send the cross-
+  origin POST. Confirm:
+    — What is the public URL of the deployed Glasshaus
+      Ecosystem API server? (e.g.
+      https://glasshauswellness.com/api or a different
+      subdomain?)
+    — Is this URL stable across redeploys, or could it change?
+    — Should Flourish hardcode this URL or read it from an
+      environment variable for portability?
+
+WHAT THE BUILD WILL LOOK LIKE
+
+Once the investigations are complete, the actual build is
+small:
+
+  Glasshaus Ecosystem API server changes:
+    — Add flourish-nairb1969.replit.app to CORS allowed origins
+    — Add flourish.glasshauswellness.com to CORS allowed
+      origins (forward-compatibility for future custom domain)
+    — Ensure /portal/ping handler properly handles cross-origin
+      preflight OPTIONS requests
+    — No schema changes (the site='flourish' value works
+      already because the column has no enum constraint)
+
+  Flourish standalone project changes:
+    — Add a usePortalPing equivalent that fires fetch calls to
+      the absolute public URL of the Glasshaus Ecosystem API,
+      sending { site: "flourish", path, referrer }
+    — Hook fires on route change (or on mount if Flourish is
+      single-page)
+    — No UI changes
+    — No auth changes
+    — No new dependencies if Flourish already uses fetch
+
+  Admin dashboard:
+    — No code changes needed — the site dropdown already
+      includes "Flourish" as an option (it was scaffolded in
+      with HFHC even though no flourish traffic existed yet)
+    — Once Flourish starts sending pings, traffic will appear
+      automatically under the Flourish filter
+
+QUESTIONS FOR YOUR ASSESSMENT
+
+Before writing any code, please respond with:
+
+1. CORS configuration approach
+   Recommend whether to maintain a hardcoded allowed-origins
+   list in the API server code, OR move it to an environment
+   variable so future partner properties can be added without
+   redeploys. Given that we anticipate Atrium, BlissBeacon,
+   CoParentConnect, and possibly Equilibrium all eventually
+   landing on their own subdomains, what's the right
+   architectural choice?
+
+2. Flourish project access
+   Can you access the Flourish Replit project from this
+   session, or do you need me to grant access first? If you
+   need access, what specifically (deployment password,
+   project sharing invite, code paste, etc.)?
+
+3. Cross-origin auth posture
+   Currently /portal/ping does not require authentication —
+   any client can ping it. For Flourish, this is fine for
+   pure visit logging. But: should we add a lightweight
+   shared-secret (HMAC or simple API token) to the cross-
+   origin pings to prevent random internet abuse of the ping
+   endpoint? Recommend tradeoff.
+
+4. Failure mode on cross-origin
+   If the Glasshaus API is down or unreachable, the Flourish
+   ping fetch call will fail. Should Flourish:
+     a. Log the error and continue silently (current Glasshaus
+        pattern — fire and forget)
+     b. Retry with backoff
+     c. Queue failed pings in localStorage and resend later
+   Recommend.
+
+5. URL configuration
+   Flourish needs to know where to send pings. Recommend:
+     a. Hardcoded constant in the Flourish code (e.g.,
+        const API_URL = "https://glasshauswellness.com/api")
+     b. Environment variable in Flourish's Replit secrets
+     c. Both — env var with hardcoded fallback
+   Given that Flourish is a separate Replit project, env vars
+   may be the cleaner option for non-secret config.
+
+6. Verification approach
+   Once the build is done, how do we verify the integration?
+   Specifically: how do we trigger a Flourish visit without
+   logging in through Replit's deployment password each time?
+   Recommend a test flow.
+
+7. Backward compatibility
+   The existing HFHC and Glasshaus integrations should be
+   completely unaffected by this change. Confirm that the
+   CORS update doesn't accidentally break the same-origin
+   path that HFHC and Glasshaus use.
+
+8. Anything else you would flag.
+
+Please respond with your full assessment of these eight items
+BEFORE writing any code in either project.
+
+
+=======================================================================
+SECTION 2 — WHAT BRIAN WILL DO WITH THE AGENT'S RESPONSE
+=======================================================================
+
+When the agent responds:
+  1. Brian reads the assessment.
+  2. Brian pastes the assessment back into Claude chat for
+     review before authorizing code changes.
+  3. Decisions to make together:
+     a. CORS allowed-origins architecture (hardcoded vs. env
+        var) — sets precedent for future partner properties
+     b. Cross-origin auth posture (open vs. shared secret)
+     c. URL configuration approach for Flourish
+     d. Failure mode handling
+  4. Brian sends the greenlight to the agent.
+  5. Agent executes the build across BOTH projects.
+  6. Brian verifies a test Flourish visit appears in the
+     unified admin dashboard.
+
+
+=======================================================================
+SECTION 3 — LOCKED-IN DEFAULTS (NOT FOR AGENT QUESTIONS)
+=======================================================================
+
+Brian has already decided the following — these are NOT open
+questions for the agent's assessment, just statements of policy
+the build must honor:
+
+  Scope: portal visit tracking ONLY. No access codes, no
+    admin pages, no UI changes, no migration into the monorepo.
+    This pass is purely instrumentation.
+
+  Site value: 'flourish' is the value used in the site
+    column. This was scaffolded already with the HFHC build.
+
+  Notification emails: Flourish visits generate emails with
+    [Flourish] in the subject line — same pattern as HFHC.
+
+  Admin dashboard: no UI changes needed in this pass.
+    Flourish traffic appears automatically under the Flourish
+    filter once pings start arriving.
+
+  Build sequence: investigations first (no code), then
+    Brian reviews, then Brian greenlights, then build across
+    both projects, then verification.
+
+  Time-sensitive: this is being requested in a working
+    session. Investigations should be efficient. If
+    investigation surfaces a true blocker, name it and stop
+    rather than improvising.
+
+
+=======================================================================
+SECTION 4 — STRATEGIC NOTES
+=======================================================================
+
+Why this integration matters now:
+
+The Glasshaus admin dashboard currently sees two of the four
+properties in the ecosystem. Adding Flourish makes it three.
+Bringing all four under unified observability is the operational
+foundation for the Bold Horizons Phase 2 launch (Flourish is
+the first paying ARR target) and for investor diligence (the
+"one control surface governs the entire ecosystem" story).
+
+Why cross-origin is the right pattern for now:
+
+Migrating Flourish into the monorepo is a larger task with its
+own risks (deployment history, in-flight work, build pattern
+differences). Cross-origin integration via the public API
+preserves Flourish as a working standalone deployment while
+still bringing its traffic into the unified dashboard. If a
+future architectural decision warrants the migration, that's
+a separate project. This pass keeps options open.
+
+Why the CORS architectural question matters:
+
+This is the first cross-origin integration. The choice of how
+to manage allowed origins (hardcoded list vs. env var)
+establishes the pattern for every future partner property.
+Doing it right once is cheaper than redoing it for each new
+property.
+
+What success looks like:
+
+  — A real visit to flourish-nairb1969.replit.app generates
+    a portal_visits row with site='flourish'
+  — The row appears in /admin/portal when filtered to
+    "Flourish"
+  — A notification email arrives with subject "[Flourish]
+    Portal visit"
+  — Existing Glasshaus and HFHC pings continue to work
+    unchanged
+  — No console errors or CORS preflight failures in the
+    Flourish browser console
+
+
+=======================================================================
+DOCUMENT METADATA
+=======================================================================
+
+Document:     GLASSHAUS_Flourish_CrossOrigin_Integration_Patch.txt
+Target:       Two Replit projects:
+                1. Glasshaus Ecosystem (CORS update on shared
+                   API server)
+                2. Flourish standalone at
+                   flourish-nairb1969.replit.app (usePortalPing
+                   equivalent)
+Mode:         CONSULTATION FIRST — no code changes until agent
+              has responded and Brian has reviewed
+Status:       PASTE-READY for Replit Agent
+Next action:  Paste Section 1 into Replit agent. Wait for
+              investigation report. Review with Claude before
+              greenlighting the build.
+
+=======================================================================
